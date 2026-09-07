@@ -1,0 +1,318 @@
+{
+  "info": {
+    "_postman_id": "9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4",
+    "name": "JAROOS Educational App REST API",
+    "description": "Postman API Collection for JAROOS Kids Learning Platform (MCA Major Project)\nIncludes Health, Authentication (JWT), Learning Progress Telemetry, Quiz Results, and Parent Safety Controls.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Checks server online status, version, and database mode (Live MySQL vs Viva Mock Mode)."
+      },
+      "response": []
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "1. Login (Demo User)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('authToken', jsonData.token);",
+                  "    console.log('JWT Token successfully set!');",
+                  "}",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('User profile returned', function () {",
+                  "    pm.expect(jsonData.user.childName).to.eql('Aarav');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@jaroos.edu\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Register New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"parent_test@jaroos.edu\",\n  \"password\": \"securePass123\",\n  \"childName\": \"Ishaan\",\n  \"childAge\": 6,\n  \"avatar\": \"star_hero\",\n  \"favoriteSubject\": \"animals\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Authenticated Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Learning Progress & Quizzes",
+      "item": [
+        {
+          "name": "1. Get Progress Telemetry",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["progress"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Sync Learning Progress",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"streakDays\": 5,\n  \"totalCoins\": 310,\n  \"overallPercentage\": 48.0,\n  \"completedLessons\": 28,\n  \"moduleProgress\": {\n    \"alphabet\": 40.0,\n    \"numbers\": 35.0,\n    \"animals\": 50.0\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/progress/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["progress", "sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Save Completed Quiz Result",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizCategory\": \"Alphabet & Phonics\",\n  \"scorePercentage\": 100,\n  \"starsEarned\": 3,\n  \"coinsEarned\": 15,\n  \"totalQuestions\": 5,\n  \"correctAnswers\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/progress/quiz",
+              "host": ["{{baseUrl}}"],
+              "path": ["progress", "quiz"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Unlocked Achievements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/progress/achievements",
+              "host": ["{{baseUrl}}"],
+              "path": ["progress", "achievements"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Parental Controls & Safety",
+      "item": [
+        {
+          "name": "1. Get Parental Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/parent/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["parent", "settings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Update Screen Time & Limits",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentPin\": \"5678\",\n  \"dailyTimeLimitMinutes\": 45,\n  \"mathGateEnabled\": true,\n  \"speechRate\": 0.6,\n  \"allowedModules\": {\n    \"alphabet\": true,\n    \"numbers\": true,\n    \"colors\": true,\n    \"shapes\": true,\n    \"animals\": true,\n    \"quiz\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/parent/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["parent", "settings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify Parent PIN (Valid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pin\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/parent/verify-pin",
+              "host": ["{{baseUrl}}"],
+              "path": ["parent", "verify-pin"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Verify Parent PIN (Invalid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pin\": \"0000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/parent/verify-pin",
+              "host": ["{{baseUrl}}"],
+              "path": ["parent", "verify-pin"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
