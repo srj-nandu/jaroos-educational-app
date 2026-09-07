@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/responsive_util.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../widgets/jaroos_logo.dart';
+import '../../../widgets/jaroos_monster_mascot.dart';
 
-/// Splash Screen for JAROOS.
-/// Displays animated mascot, colorful typography, and tagline "Learn • Play • Grow".
-/// Automatically transitions to the Login screen after ~2 seconds.
+/// Redesigned Splash Screen for JAROOS matching the lime-green monster aesthetic.
+/// Features the top-peeking mascot face with blinking eyes, bouncy title typography,
+/// tagline "Learn • Play • Grow", and an animated loading pill.
+/// Automatically transitions to Welcome / Home screen after ~2 seconds.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -28,7 +29,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
 
-    // Setup entrance animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -46,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _animationController.forward();
 
-    // Scheduled navigation after exactly 2 seconds as specified in requirements
     _navigationTimer = Timer(
       const Duration(seconds: AppConstants.splashDurationSeconds),
       _navigateToNextScreen,
@@ -69,137 +68,138 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void dispose() {
     _navigationTimer?.cancel();
+    _navigationTimer = null;
     _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isSmall = ResponsiveUtil.isSmallPhone(context);
-    final isTablet = ResponsiveUtil.isTablet(context);
-    final mascotSize = isTablet ? 160.0 : (isSmall ? 100.0 : 130.0);
-    final fontSize = isTablet ? 56.0 : (isSmall ? 38.0 : 48.0);
-
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.splashGradient,
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // Playful decorative background elements (soft clouds & stars)
-              _buildBackgroundDecorations(size),
+      backgroundColor: AppColors.monsterGreen,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            // 1. Top Mascot Face (peeking down from top edge)
+            const JaroosMonsterMascot(
+              mode: MascotMode.topFace,
+              scale: 1.05,
+              animateBlink: true,
+            ),
 
-              // Centered Mascot & Branding
-              Center(
-                child: SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: JaroosLogo(
-                        mascotSize: mascotSize,
-                        fontSize: fontSize,
-                        showTagline: true,
-                        isAnimated: true,
+            const Spacer(flex: 1),
+
+            // 2. Centered Animated Branding
+            FadeTransition(
+              opacity: _fadeAnimation,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Playful App Name
+                    Text(
+                      'JAROOS',
+                      style: GoogleFonts.fredoka(
+                        fontSize: 54,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.monsterDarkNavy,
+                        letterSpacing: 2.0,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            offset: const Offset(0, 4),
+                            blurRadius: 8,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-              ),
 
-              // Bottom subtle indicator / version
-              Positioned(
-                bottom: 20,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Text(
-                      'v${AppConstants.appVersion} • Educational Platform',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textLight,
+                    const SizedBox(height: 10),
+
+                    // Tagline Pill
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.monsterGreenField.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: const Color(0xFF6FB800).withValues(alpha: 0.5),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('✨ ', style: TextStyle(fontSize: 16)),
+                          Text(
+                            'Learn • Play • Grow',
+                            style: GoogleFonts.nunito(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.monsterDarkNavy,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const Text(' 🌟', style: TextStyle(fontSize: 16)),
+                        ],
                       ),
                     ),
-                  ),
+
+                    const SizedBox(height: 32),
+
+                    // Playful Loading Indicator
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.monsterDarkNavy),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Text(
+                            'Getting ready for fun...',
+                            style: GoogleFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.monsterDarkNavy,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+            ),
 
-  /// Soft decorative clouds and twinkling stars in the background
-  Widget _buildBackgroundDecorations(Size size) {
-    return Stack(
-      children: [
-        // Top Left Cloud
-        Positioned(
-          top: size.height * 0.08,
-          left: -20,
-          child: _buildCloud(120, 60, Colors.white.withValues(alpha: 0.7)),
-        ),
+            const Spacer(flex: 2),
 
-        // Top Right Sun Ray / Cloud
-        Positioned(
-          top: size.height * 0.05,
-          right: -10,
-          child: _buildCloud(140, 70, Colors.white.withValues(alpha: 0.6)),
+            // 3. Bottom Subtle Version
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Text(
+                'v${AppConstants.appVersion} • Educational Adventure',
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF3B6200),
+                ),
+              ),
+            ),
+          ],
         ),
-
-        // Floating Little Stars
-        Positioned(
-          top: size.height * 0.20,
-          left: 40,
-          child: const Icon(Icons.star_rounded, color: Color(0xFFFFD54F), size: 28),
-        ),
-        Positioned(
-          top: size.height * 0.25,
-          right: 48,
-          child: const Icon(Icons.star_rounded, color: Color(0xFFFF8DA1), size: 22),
-        ),
-        Positioned(
-          bottom: size.height * 0.22,
-          left: 36,
-          child: const Icon(Icons.star_rounded, color: Color(0xFF81C784), size: 24),
-        ),
-        Positioned(
-          bottom: size.height * 0.18,
-          right: 40,
-          child: const Icon(Icons.star_rounded, color: Color(0xFF4FC3F7), size: 30),
-        ),
-
-        // Bottom Fluffy Cloud
-        Positioned(
-          bottom: -30,
-          left: size.width * 0.2,
-          child: _buildCloud(220, 90, Colors.white.withValues(alpha: 0.85)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCloud(double width, double height, Color color) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(height / 2),
       ),
     );
   }
