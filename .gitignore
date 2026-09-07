@@ -54,6 +54,7 @@ app.*.map.json
 
 # Node.js backend
 **/node_modules/
-node_modules/
 backend/.env
 
+# Release binaries (stored in GitHub Releases)
+releases/*.apk
