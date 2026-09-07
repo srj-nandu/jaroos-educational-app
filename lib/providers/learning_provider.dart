@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/config/app_flavor.dart';
 import '../core/constants/app_constants.dart';
 import '../core/routes/app_routes.dart';
 import '../core/theme/app_colors.dart';
@@ -9,17 +10,31 @@ import '../models/progress_model.dart';
 /// Centralized state management for learning progress, active modules,
 /// reward coins, and child learning streaks in JAROOS.
 class LearningProvider with ChangeNotifier {
-  int _coins = 150;
-  int _streakDays = 3;
-  int _totalQuizzesAttempted = 4;
-  double _averageQuizScore = 95.0;
-  int _bonusStars = 12;
+  late int _coins;
+  late int _streakDays;
+  late int _totalQuizzesAttempted;
+  late double _averageQuizScore;
+  late int _bonusStars;
   bool _isLoading = false;
 
   late List<LearningModuleModel> _modules;
   late List<AchievementModel> _achievements;
 
   LearningProvider() {
+    if (AppFlavor.isGlobal) {
+      _coins = 0;
+      _streakDays = 0;
+      _totalQuizzesAttempted = 0;
+      _averageQuizScore = 0.0;
+      _bonusStars = 0;
+    } else {
+      // Testing / viva evaluation state (matching the 320 XP, 7-day streak mockup)
+      _coins = 320;
+      _streakDays = 7;
+      _totalQuizzesAttempted = 4;
+      _averageQuizScore = 95.0;
+      _bonusStars = 12;
+    }
     _initModules();
     _initAchievements();
   }
@@ -52,8 +67,9 @@ class LearningProvider with ChangeNotifier {
   }
 
   void _initModules() {
+    final isGlobal = AppFlavor.isGlobal;
     _modules = [
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleAlphabet,
         title: 'Alphabet',
         subtitle: 'Learn A to Z with phonics',
@@ -62,10 +78,10 @@ class LearningProvider with ChangeNotifier {
         primaryColor: AppColors.primary,
         secondaryColor: AppColors.primaryDark,
         totalLessons: 26,
-        completedLessons: 8,
+        completedLessons: isGlobal ? 0 : 8,
         order: 1,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleNumbers,
         title: 'Numbers',
         subtitle: 'Count 1 to 20 with fun',
@@ -74,103 +90,103 @@ class LearningProvider with ChangeNotifier {
         primaryColor: AppColors.secondary,
         secondaryColor: AppColors.secondaryDark,
         totalLessons: 20,
-        completedLessons: 6,
+        completedLessons: isGlobal ? 0 : 6,
         order: 2,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleColors,
         title: 'Colors',
         subtitle: 'Explore rainbow colors',
         icon: Icons.palette_rounded,
         route: AppRoutes.colors,
         primaryColor: AppColors.candyPink,
-        secondaryColor: Color(0xFFE91E63),
+        secondaryColor: const Color(0xFFE91E63),
         totalLessons: 10,
-        completedLessons: 4,
+        completedLessons: isGlobal ? 0 : 4,
         order: 3,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleShapes,
         title: 'Shapes',
         subtitle: 'Circles, squares & stars',
         icon: Icons.category_rounded,
         route: AppRoutes.shapes,
         primaryColor: AppColors.mintGreen,
-        secondaryColor: Color(0xFF388E3C),
+        secondaryColor: const Color(0xFF388E3C),
         totalLessons: 8,
-        completedLessons: 3,
+        completedLessons: isGlobal ? 0 : 3,
         order: 4,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleAnimals,
         title: 'Animals',
         subtitle: 'Meet jungle & farm friends',
         icon: Icons.pets_rounded,
         route: AppRoutes.animals,
         primaryColor: AppColors.coral,
-        secondaryColor: Color(0xFFE64A19),
+        secondaryColor: const Color(0xFFE64A19),
         totalLessons: 12,
-        completedLessons: 5,
+        completedLessons: isGlobal ? 0 : 5,
         order: 5,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleFruits,
         title: 'Fruits & Veggies',
         subtitle: 'Healthy & delicious food',
         icon: Icons.apple_rounded,
         route: AppRoutes.fruits,
         primaryColor: AppColors.lavender,
-        secondaryColor: Color(0xFF7B1FA2),
+        secondaryColor: const Color(0xFF7B1FA2),
         totalLessons: 12,
-        completedLessons: 4,
+        completedLessons: isGlobal ? 0 : 4,
         order: 6,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleStories,
         title: 'Bedtime Stories',
         subtitle: 'Delightful bedtime tales',
         icon: Icons.menu_book_rounded,
         route: AppRoutes.stories,
-        primaryColor: Color(0xFF26A69A),
-        secondaryColor: Color(0xFF00796B),
+        primaryColor: const Color(0xFF26A69A),
+        secondaryColor: const Color(0xFF00796B),
         totalLessons: 6,
-        completedLessons: 2,
+        completedLessons: isGlobal ? 0 : 2,
         order: 7,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleRhymes,
         title: 'Fun Rhymes',
         subtitle: 'Sing along with sweet songs',
         icon: Icons.music_note_rounded,
         route: AppRoutes.rhymes,
-        primaryColor: Color(0xFFEC407A),
-        secondaryColor: Color(0xFFC2185B),
+        primaryColor: const Color(0xFFEC407A),
+        secondaryColor: const Color(0xFFC2185B),
         totalLessons: 8,
-        completedLessons: 3,
+        completedLessons: isGlobal ? 0 : 3,
         order: 8,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleQuiz,
         title: 'Quiz Arena',
         subtitle: 'Test knowledge & earn stars',
         icon: Icons.psychology_rounded,
         route: AppRoutes.quiz,
-        primaryColor: Color(0xFFFFA726),
-        secondaryColor: Color(0xFFF57C00),
+        primaryColor: const Color(0xFFFFA726),
+        secondaryColor: const Color(0xFFF57C00),
         totalLessons: 15,
-        completedLessons: 6,
+        completedLessons: isGlobal ? 0 : 6,
         order: 9,
       ),
-      const LearningModuleModel(
+      LearningModuleModel(
         id: AppConstants.moduleProgress,
         title: 'My Progress',
         subtitle: 'Badges, streaks & stats',
         icon: Icons.emoji_events_rounded,
         route: AppRoutes.progress,
-        primaryColor: Color(0xFF7E57C2),
-        secondaryColor: Color(0xFF512DA8),
+        primaryColor: const Color(0xFF7E57C2),
+        secondaryColor: const Color(0xFF512DA8),
         totalLessons: 10,
-        completedLessons: 4,
+        completedLessons: isGlobal ? 0 : 4,
         order: 10,
       ),
     ];

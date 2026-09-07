@@ -3,6 +3,8 @@ import '../../features/splash/screens/splash_screen.dart';
 import '../../features/authentication/screens/welcome_screen.dart';
 import '../../features/authentication/screens/login_screen.dart';
 import '../../features/authentication/screens/register_screen.dart';
+import '../../features/navigation/screens/main_navigation_shell.dart';
+import '../../features/learning_path/screens/learning_path_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/alphabet/screens/alphabet_screen.dart';
 import '../../features/numbers/screens/numbers_screen.dart';
@@ -29,6 +31,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String home = '/home';
+  static const String learningPath = '/learning-path';
   static const String alphabet = '/alphabet';
   static const String numbers = '/numbers';
   static const String colors = '/colors';
@@ -61,7 +64,10 @@ class AppRoutes {
         return _buildPageRoute(const RegisterScreen(), settings);
 
       case home:
-        return _buildPageRoute(const HomeScreen(), settings);
+        return _buildPageRoute(const MainNavigationShell(), settings);
+
+      case learningPath:
+        return _buildPageRoute(const LearningPathScreen(), settings);
 
       case alphabet:
         return _buildPageRoute(const AlphabetScreen(), settings);

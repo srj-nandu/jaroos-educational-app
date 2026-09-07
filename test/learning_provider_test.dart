@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jaroos/core/config/app_flavor.dart';
 import 'package:jaroos/core/constants/app_constants.dart';
 import 'package:jaroos/providers/learning_provider.dart';
 
@@ -27,8 +28,10 @@ void main() {
     });
 
     test('Initializes with default coins and streak days', () {
-      expect(learningProvider.coins, 150);
-      expect(learningProvider.streakDays, 3);
+      final expectedCoins = AppFlavor.isGlobal ? 0 : 320;
+      final expectedStreak = AppFlavor.isGlobal ? 0 : 7;
+      expect(learningProvider.coins, expectedCoins);
+      expect(learningProvider.streakDays, expectedStreak);
     });
 
     test('Overall progress is calculated accurately', () {
@@ -38,14 +41,15 @@ void main() {
     });
 
     test('addCoins increases coins balance', () {
+      final initialCoins = learningProvider.coins;
       learningProvider.addCoins(50);
-      expect(learningProvider.coins, 200);
+      expect(learningProvider.coins, initialCoins + 50);
 
       // Negative or zero coins should have no effect
       learningProvider.addCoins(0);
-      expect(learningProvider.coins, 200);
+      expect(learningProvider.coins, initialCoins + 50);
       learningProvider.addCoins(-10);
-      expect(learningProvider.coins, 200);
+      expect(learningProvider.coins, initialCoins + 50);
     });
 
     test('completeLesson increases completed count and awards coins', () {

@@ -50,12 +50,12 @@ void main() {
 
     // 3. Verify Welcome Screen elements (Screen 1 in design mockup)
     expect(find.byType(WelcomeScreen), findsOneWidget);
-    expect(find.text("Let's learn &\nplay!"), findsOneWidget);
-    expect(find.text('Sign Up'), findsOneWidget);
-    expect(find.text('Log In'), findsOneWidget);
+    expect(find.text('Learn & Play.\nLevel Up Your World.'), findsOneWidget);
+    expect(find.text('Start Learning'), findsOneWidget);
+    expect(find.text('Log in'), findsOneWidget);
 
-    // 4. Tap "Log In" to navigate to redesigned Login Screen (Screen 2 in design mockup)
-    await tester.tap(find.text('Log In'));
+    // 4. Tap "Log in" to navigate to redesigned Login Screen (Screen 2 in design mockup)
+    await tester.tap(find.text('Log in'));
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginScreen), findsOneWidget);
@@ -100,16 +100,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(LoginScreen), findsNothing);
 
-    // 11. Verify HomeScreen UI and modules
+    // 11. Verify HomeScreen UI, Bottom Navigation Bar, and modules
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Hi, Aarav! 👋'), findsOneWidget);
-    expect(find.text('Learning Adventures 🚀'), findsOneWidget);
-    expect(find.text('Alphabet'), findsOneWidget);
+    expect(find.text('Hey, Aarav! 👋'), findsOneWidget);
+    expect(find.text('Courses'), findsOneWidget); // Verifies Bottom Navigation Bar!
+    expect(find.text('Alphabet'), findsAtLeastNWidgets(1));
     expect(find.text('Numbers'), findsOneWidget);
     expect(find.text('Colors'), findsOneWidget);
 
     // 12. Navigate from Home to Alphabet Module
-    await tester.tap(find.text('Alphabet'));
+    await tester.tap(find.text('Alphabet').first);
     await tester.pumpAndSettle();
     expect(find.byType(AlphabetScreen), findsOneWidget);
     expect(find.text('Alphabet (A to Z) 🔤'), findsOneWidget);

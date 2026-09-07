@@ -34,11 +34,14 @@ class ModularTtsService implements TtsService {
     try {
       _flutterTts = FlutterTts();
 
-      // Configure child-friendly voice settings
+      // Configure child-friendly, humanized voice settings
       await _flutterTts!.setLanguage("en-US");
-      await _flutterTts!.setSpeechRate(0.48); // Calm, gentle toddler pace
+      await _flutterTts!.setSpeechRate(0.44); // Warm, gentle conversational pace
       await _flutterTts!.setVolume(1.0);
-      await _flutterTts!.setPitch(1.05); // Cheerful child-friendly pitch
+      await _flutterTts!.setPitch(1.08); // Cheerful, friendly, encouraging pitch
+
+      // Attempt to pick a natural neural / humanized voice
+      await _selectHumanizedVoice();
 
       // Await completion so buttons reflect active speaking state
       try {
@@ -66,11 +69,53 @@ class ModularTtsService implements TtsService {
       });
 
       _isInitialized = true;
-      debugPrint('[JAROOS TTS] Native FlutterTts initialized successfully!');
+      debugPrint('[JAROOS TTS] Native FlutterTts humanized engine initialized successfully!');
     } catch (e) {
       debugPrint('[JAROOS TTS] Native FlutterTts initialization note: $e');
       _isInitialized = false;
     }
+  }
+
+  /// Automatically selects a natural, human-like voice from available device voices
+  Future<void> _selectHumanizedVoice() async {
+    try {
+      final voices = await _flutterTts!.getVoices;
+      if (voices is List && voices.isNotEmpty) {
+        dynamic selectedVoice;
+        for (final voice in voices) {
+          if (voice is Map) {
+            final name = voice['name']?.toString().toLowerCase() ?? '';
+            final locale = voice['locale']?.toString().toLowerCase() ?? '';
+            if (locale.contains('en-us') || locale.contains('en_us') || locale.contains('en-gb') || locale.contains('en')) {
+              // Prioritize natural neural/network voices for lifelike speech
+              if (name.contains('neural') || name.contains('network') || name.contains('natural') || name.contains('sfg') || name.contains('iom')) {
+                selectedVoice = voice;
+                break;
+              }
+            }
+          }
+        }
+        if (selectedVoice != null && selectedVoice is Map) {
+          final voiceMap = Map<String, String>.from(
+            selectedVoice.map((k, v) => MapEntry(k.toString(), v.toString())),
+          );
+          await _flutterTts!.setVoice(voiceMap);
+          debugPrint('[JAROOS TTS] Humanized voice selected: ${voiceMap['name']}');
+        }
+      }
+    } catch (e) {
+      debugPrint('[JAROOS TTS Voice Selection Note] $e');
+    }
+  }
+
+  /// Preprocesses text to introduce natural phrasing, pause rhythm, and clear phonetics
+  String _humanizeText(String raw) {
+    var text = raw.trim();
+    // Add micro-pause after periods and colons
+    text = text.replaceAll('. ', '... ');
+    text = text.replaceAll('! ', '! ');
+    text = text.replaceAll(': ', '... ');
+    return text;
   }
 
   @override
@@ -93,14 +138,16 @@ class ModularTtsService implements TtsService {
     final clean = text.trim();
     if (clean.isEmpty) return;
 
+    final humanized = _humanizeText(clean);
+
     _isSpeaking = true;
     _currentSpeech.value = clean;
-    debugPrint('[JAROOS TTS] Speaking: "$clean"');
+    debugPrint('[JAROOS TTS] Speaking: "$humanized"');
 
     if (_isInitialized && _flutterTts != null) {
       try {
         await _flutterTts!.stop();
-        await _flutterTts!.speak(clean);
+        await _flutterTts!.speak(humanized);
         _isSpeaking = false;
         _currentSpeech.value = null;
         return;

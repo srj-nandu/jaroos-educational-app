@@ -90,6 +90,18 @@ class AppColors {
     end: Alignment.bottomCenter,
   );
 
+  // Duolingo & Playful Adventure Theme (New Mockup Reference)
+  static const Color forestGreenDark = Color(0xFF132A13); // Deep dark forest sheet & container
+  static const Color forestGreenMedium = Color(0xFF1A381B); // Card container
+  static const Color duolingoLime = Color(0xFF58CC02); // Vibrant primary action green
+  static const Color duolingoLimeDark = Color(0xFF48C72B); // Deeper green for border/shadow
+  static const Color streakFlame = Color(0xFFFF9600); // Streak flame orange
+  static const Color xpGold = Color(0xFFFFC800); // XP and gold badges
+  static const Color leagueSilver = Color(0xFF9E9E9E); // Silver league
+  static const Color pathEarth = Color(0xFFE5D5B8); // Stepping stones earth
+  static const Color lightGreenCanvas = Color(0xFFF3F9ED); // Soft green dashboard canvas
+  static const Color lockedNodeGrey = Color(0xFFD1D5DB); // Locked lesson nodes
+
   // Shadows
   static List<BoxShadow> softShadow = [
     BoxShadow(
