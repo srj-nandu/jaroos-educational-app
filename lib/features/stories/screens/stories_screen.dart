@@ -1,12 +1,15 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/services/audio_fx_service.dart';
 import '../../../core/services/tts_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/responsive_util.dart';
 import '../../../providers/learning_provider.dart';
+import '../../common/widgets/frog_assistant_widget.dart';
 
 class StoryItem {
   final String title;
@@ -16,6 +19,7 @@ class StoryItem {
   final String summary;
   final List<String> paragraphs;
   final Color themeColor;
+  final String characterName;
 
   const StoryItem({
     required this.title,
@@ -25,11 +29,17 @@ class StoryItem {
     required this.summary,
     required this.paragraphs,
     required this.themeColor,
+    required this.characterName,
   });
 }
 
 /// Interactive Bedtime & Moral Stories Module for JAROOS.
-/// Features classic children's moral tales with interactive "Read to Me" TTS narration.
+/// Features:
+/// - Classic children's moral tales
+/// - Interactive "Read to Me" voice narration
+/// - Built-in Audio Sound FX Soundboard (character voices, magic sparkles, cheering)
+/// - Illustrated reading cards
+/// - Embedded Cut-the-Rope Frog Assistant ("Froggo")
 class StoriesScreen extends StatelessWidget {
   const StoriesScreen({super.key});
 
@@ -40,6 +50,7 @@ class StoriesScreen extends StatelessWidget {
       duration: '3 min read',
       moral: 'Slow and steady wins the race!',
       summary: 'A boastful hare challenges a patient tortoise to a race with a surprising finish.',
+      characterName: 'Hare',
       paragraphs: [
         'Once upon a time in a lush green forest, there lived a speedy Hare who loved bragging about how fast he could run.',
         'Tired of his bragging, a wise and quiet Tortoise challenged him to a friendly foot race across the meadow.',
@@ -56,6 +67,7 @@ class StoriesScreen extends StatelessWidget {
       duration: '3 min read',
       moral: 'Even the smallest friend can be a great helper!',
       summary: 'A tiny mouse promises to help a mighty lion, proving kindness always matters.',
+      characterName: 'Lion',
       paragraphs: [
         'One sunny afternoon, a great Lion was fast asleep in his cave. A curious little Mouse scampered across his big nose by accident and woke him up.',
         'The Lion placed his huge paw over the shivering mouse: "How dare you wake the king of beasts!"',
@@ -72,6 +84,7 @@ class StoriesScreen extends StatelessWidget {
       duration: '2 min read',
       moral: 'Where there is a will, there is a way!',
       summary: 'A clever crow uses pebbles to raise the water level and quench his thirst.',
+      characterName: 'Crow',
       paragraphs: [
         'On a hot summer day, a thirsty Crow flew all across the countryside searching for water to drink.',
         'He flew over farms and trees until at last, in a quiet garden, he spotted a tall clay pitcher with water inside.',
@@ -88,6 +101,7 @@ class StoriesScreen extends StatelessWidget {
       duration: '3 min read',
       moral: 'Hard work today brings peace and comfort tomorrow.',
       summary: 'Hardworking ants prepare for winter while a carefree grasshopper sings the days away.',
+      characterName: 'Grasshopper',
       paragraphs: [
         'During a bright summer, a merry Grasshopper spent his days playing music, dancing, and enjoying the warm sunshine.',
         'Nearby, a line of busy Ants marched back and forth carrying heavy grains of wheat into their cozy underground storehouse.',
@@ -98,332 +112,244 @@ class StoriesScreen extends StatelessWidget {
       ],
       themeColor: Color(0xFF66BB6A),
     ),
-    StoryItem(
-      title: 'The Boy Who Cried Wolf',
-      emoji: '🐺',
-      duration: '3 min read',
-      moral: 'Honesty is always the best policy; truth builds trust.',
-      summary: 'A bored shepherd boy learns that playing tricks costs the trust of his village.',
-      paragraphs: [
-        'A young shepherd boy watched over a flock of fluffy sheep on a hillside near a peaceful village.',
-        'Feeling bored one day, he decided to play a trick. He ran toward the village shouting: "Wolf! Wolf! A wolf is chasing the sheep!"',
-        'The villagers dropped their work and rushed up the hill with sticks to protect the sheep, only to find the boy laughing heartily at his prank.',
-        'A few days later, the boy played the exact same trick again. Once more, the kind villagers came running, only to be laughed at.',
-        'Then, one evening at sunset, a real wolf crept out of the shadows toward the flock! Terrified, the boy cried: "Wolf! Wolf! Please help, it is real!"',
-        'Thinking it was another trick, no villagers came. The boy learned a lifelong lesson: no one believes a liar, even when they tell the truth.',
-      ],
-      themeColor: Color(0xFFEF5350),
-    ),
-    StoryItem(
-      title: 'The Golden Goose',
-      emoji: '🪿',
-      duration: '3 min read',
-      moral: 'Be thankful for what you have; greed leads to regret.',
-      summary: 'A lucky farmer discovers a goose that lays golden eggs, learning the danger of greed.',
-      paragraphs: [
-        'A humble country farmer owned a very special goose that laid one solid golden egg every single morning.',
-        'Each day, the farmer sold the golden egg and slowly grew wealthy. But the more gold he had, the greedier he became.',
-        'He thought to himself: "If this bird lays golden eggs, her inside must be filled with pure gold! Why wait one egg at a time?"',
-        'In his impatience, the greedy farmer took the goose and looked inside. But to his dismay, the magical goose was just like any ordinary bird inside!',
-        'The farmer wept in regret. In his greed to have everything at once, he had lost the wonderful golden treasure he enjoyed each morning.',
-        'He learned that patience and gratitude bring true lasting happiness.',
-      ],
-      themeColor: Color(0xFFFF7043),
-    ),
   ];
 
   void _openStoryReader(BuildContext context, StoryItem story) {
-    final learningProvider = Provider.of<LearningProvider>(context, listen: false);
-    learningProvider.completeLesson(AppConstants.moduleStories, coinReward: 10);
-
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (ctx) => _StoryReaderScreen(story: story),
-      ),
+      MaterialPageRoute(builder: (_) => _StoryReaderScreen(story: story)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final horizontalPadding = ResponsiveUtil.getHorizontalPadding(context);
-    final isTablet = ResponsiveUtil.isTablet(context);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7FCF2),
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
         title: Text(
           'Bedtime Stories 📖',
           style: GoogleFonts.fredoka(
-            fontSize: isTablet ? 24 : 20,
+            fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: const Color(0xFF132A13),
           ),
         ),
-        actions: [
-          TextButton.icon(
-            icon: const Text('✨', style: TextStyle(fontSize: 16)),
-            label: const Text(
-              'AI Magic',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFE64A19),
-              ),
-            ),
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.aiStoryGenerator);
-            },
-          ),
-        ],
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.splashGradient,
-        ),
-        child: SafeArea(
-          child: ListView.builder(
-            padding: EdgeInsets.symmetric(
-              horizontal: horizontalPadding,
-              vertical: 12,
-            ),
-            physics: const BouncingScrollPhysics(),
-            itemCount: _storiesList.length + 1,
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                // AI Story Magic Promo Banner
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF8A65), Color(0xFFFF5722)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
+              itemCount: _storiesList.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  // AI Story Creator Banner
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    borderRadius: BorderRadius.circular(24),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.pushNamed(context, AppRoutes.aiStoryGenerator),
+                        borderRadius: BorderRadius.circular(24),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: const Center(
+                                  child: Text('✨', style: TextStyle(fontSize: 28)),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Story Magic Studio',
+                                          style: GoogleFonts.fredoka(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.amber,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Text(
+                                            'NEW',
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Choose your hero, moral & setting. Create a custom tale!',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white.withValues(alpha: 0.9),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                final story = _storiesList[index - 1];
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: story.themeColor.withValues(alpha: 0.35),
+                      width: 1.5,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF5722).withValues(alpha: 0.28),
-                        blurRadius: 12,
-                        offset: const Offset(0, 5),
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(24),
-                      onTap: () {
-                        Navigator.pushNamed(context, AppRoutes.aiStoryGenerator);
-                      },
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              shape: BoxShape.circle,
+                      onTap: () => _openStoryReader(context, story),
+                      borderRadius: BorderRadius.circular(22),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: story.themeColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Center(
+                                child: Text(story.emoji, style: const TextStyle(fontSize: 30)),
+                              ),
                             ),
-                            child: const Center(
-                              child: Text('🪄', style: TextStyle(fontSize: 28)),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'AI Bedtime Story Magic',
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.fredoka(
-                                          fontSize: isTablet ? 18 : 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    story.title,
+                                    style: GoogleFonts.fredoka(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF1F2937),
                                     ),
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.amber,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const Text(
-                                        'NEW',
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Choose your hero, moral & setting. Create a custom tale!',
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    story.summary,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF6B7280),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF9CA3AF)),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        story.duration,
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF9CA3AF),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      const Text('🔊 Sound FX', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.duolingoLime)),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ],
+                            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF9CA3AF)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 );
-              }
-
-              final story = _storiesList[index - 1];
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: story.themeColor.withValues(alpha: 0.35),
-                    width: 1.8,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: story.themeColor.withValues(alpha: 0.12),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => _openStoryReader(context, story),
-                    borderRadius: BorderRadius.circular(24),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          // Story Book Cover Disc
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: story.themeColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: story.themeColor.withValues(alpha: 0.4),
-                                width: 2,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                story.emoji,
-                                style: const TextStyle(fontSize: 32),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-
-                          // Story Title & Summary
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  story.title,
-                                  style: GoogleFonts.fredoka(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  story.summary,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.nunito(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-
-                                // Duration & Moral Badge
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: story.themeColor.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        story.duration,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: story.themeColor,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Text('⭐', style: TextStyle(fontSize: 12)),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        story.moral,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.textLight,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 18,
-                            color: AppColors.textLight,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+              },
+            ),
           ),
-        ),
+
+          // Embedded Frog Assistant
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: const FrogAssistantWidget(
+              compact: true,
+              customTip: "Ribbit! Pick a story and listen to animal sounds! 📖",
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Full interactive illustrated Story Reader Screen with "Read to Me" voice narration.
+/// Illustrated Story Reader Screen with "Read to Me" voice narration and Sound FX
 class _StoryReaderScreen extends StatefulWidget {
   final StoryItem story;
 
@@ -435,221 +361,336 @@ class _StoryReaderScreen extends StatefulWidget {
 
 class _StoryReaderScreenState extends State<_StoryReaderScreen> {
   bool _isNarrating = false;
+  late AudioFxService _audioFx;
+  String _activeSoundMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _audioFx = AudioFxService();
+  }
 
   Future<void> _toggleNarration() async {
-    final tts = Provider.of<TtsService>(context, listen: false);
+    final tts = ModularTtsService();
 
     if (_isNarrating) {
       await tts.stop();
-      setState(() => _isNarrating = false);
+      if (mounted) setState(() => _isNarrating = false);
     } else {
-      setState(() => _isNarrating = true);
+      if (mounted) setState(() => _isNarrating = true);
       final fullStory = '${widget.story.title}. ${widget.story.paragraphs.join(" ")} Moral of the story: ${widget.story.moral}';
       await tts.speak(fullStory);
       if (mounted) {
         setState(() => _isNarrating = false);
+        _audioFx.playStoryFanfare(widget.story.title);
+        context.read<LearningProvider>().completeLesson(AppConstants.moduleStories, coinReward: 15);
       }
     }
   }
 
-  @override
-  void dispose() {
-    // Stop speech if exiting reader
-    super.dispose();
+  void _playSound(String label, Future<void> Function() soundAction) async {
+    setState(() => _activeSoundMessage = label);
+    await soundAction();
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (mounted) {
+      setState(() => _activeSoundMessage = '');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7FCF2),
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
         title: Text(
           widget.story.title,
           style: GoogleFonts.fredoka(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: const Color(0xFF132A13),
           ),
         ),
         actions: [
-          IconButton(
+          // "Read to Me" Text & Button for test compatibility
+          TextButton.icon(
             onPressed: _toggleNarration,
-            tooltip: _isNarrating ? 'Pause Narration' : 'Read to Me',
             icon: Icon(
               _isNarrating ? Icons.pause_circle_filled_rounded : Icons.volume_up_rounded,
-              color: widget.story.themeColor,
-              size: 28,
+              color: AppColors.duolingoLime,
+              size: 22,
+            ),
+            label: Text(
+              'Read to Me',
+              style: GoogleFonts.fredoka(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.duolingoLime,
+              ),
             ),
           ),
+          const SizedBox(width: 6),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.splashGradient,
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Story Header Cover Banner
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: widget.story.themeColor.withValues(alpha: 0.3),
-                      width: 2,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Story Cover Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: AppColors.forestGreenDark,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    boxShadow: AppColors.softShadow,
-                  ),
-                  child: Row(
-                    children: [
-                      Text(widget.story.emoji, style: const TextStyle(fontSize: 48)),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.story.title,
-                              style: GoogleFonts.fredoka(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Center(
+                            child: Text(widget.story.emoji, style: const TextStyle(fontSize: 36)),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.story.title,
+                                style: GoogleFonts.fredoka(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.story.duration,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: widget.story.themeColor,
+                              const SizedBox(height: 4),
+                              Text(
+                                widget.story.summary,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Interactive Soundboard Header & Buttons
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('🔊', style: TextStyle(fontSize: 16)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Story Soundboard FX (Tap to Play!)',
+                                style: GoogleFonts.fredoka(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF132A13),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // "Read to Me" Floating Action Card
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: widget.story.themeColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isNarrating ? Icons.graphic_eq_rounded : Icons.auto_stories_rounded,
-                        color: widget.story.themeColor,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          _isNarrating ? 'Reading story aloud...' : 'Tap "Read to Me" to listen along!',
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: widget.story.themeColor,
-                          ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildSoundChip('🦁 Roar', () => _audioFx.playStoryCharacterSound('lion')),
+                            _buildSoundChip('🐭 Squeak', () => _audioFx.playStoryCharacterSound('mouse')),
+                            _buildSoundChip('🐇 Zoom', () => _audioFx.playStoryCharacterSound('hare')),
+                            _buildSoundChip('🐢 Steps', () => _audioFx.playStoryCharacterSound('tortoise')),
+                            _buildSoundChip('🦅 Plop', () => _audioFx.playStoryCharacterSound('crow')),
+                            _buildSoundChip('✨ Magic', () => _audioFx.playMagicChime()),
+                            _buildSoundChip('👏 Cheers', () => _audioFx.playApplause()),
+                          ],
                         ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: _toggleNarration,
-                        icon: Icon(_isNarrating ? Icons.stop_rounded : Icons.play_arrow_rounded, size: 20),
-                        label: Text(_isNarrating ? 'Stop' : 'Read to Me'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: widget.story.themeColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Story Paragraphs
-                ...widget.story.paragraphs.map((p) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      p,
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                        height: 1.6,
-                      ),
-                    ),
-                  );
-                }),
-
-                const SizedBox(height: 10),
-
-                // Moral of the Story Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF8E1),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFFFD54F), width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFFB300).withValues(alpha: 0.18),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Text('⭐', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 8),
+                        if (_activeSoundMessage.isNotEmpty) ...[
+                          const SizedBox(height: 8),
                           Text(
-                            'Moral of the Story',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFFB78103),
+                            'Playing: $_activeSoundMessage',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.duolingoLime,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // Paragraph Cards
+                  for (int i = 0; i < widget.story.paragraphs.length; i++) ...[
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: AppColors.duolingoLime.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${i + 1}',
+                                style: GoogleFonts.fredoka(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.duolingoLime,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              widget.story.paragraphs[i],
+                              style: GoogleFonts.nunito(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF374151),
+                                height: 1.5,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        widget.story.moral,
-                        style: GoogleFonts.fredoka(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  ],
 
-                const SizedBox(height: 24),
-              ],
+                  const SizedBox(height: 14),
+
+                  // Moral of the Story Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('🌟', style: TextStyle(fontSize: 22)),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Moral of the Story',
+                              style: GoogleFonts.fredoka(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF92400E),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          widget.story.moral,
+                          style: GoogleFonts.nunito(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFFB45309),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 90),
+                ],
+              ),
             ),
+          ),
+
+          // Embedded Frog Assistant listening along!
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: const FrogAssistantWidget(
+              compact: true,
+              customTip: "Ribbit! What an inspiring story! 🌟",
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSoundChip(String label, Future<void> Function() soundAction) {
+    return GestureDetector(
+      onTap: () => _playSound(label, soundAction),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.fredoka(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF1F2937),
           ),
         ),
       ),

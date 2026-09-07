@@ -6,9 +6,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/responsive_util.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/learning_provider.dart';
+import '../../common/widgets/frog_assistant_widget.dart';
 import '../../parent/widgets/parent_gate_dialog.dart';
 
-/// Adorable Mascot Avatar Option
 class AvatarOption {
   final String id;
   final String name;
@@ -23,9 +23,14 @@ class AvatarOption {
   });
 }
 
-/// Child & Parent Profile Screen for JAROOS.
-/// Allows young learners to customize their avatar, view their learning badges,
-/// update their nickname and age, and safely navigate to the Parent Dashboard.
+/// Gamified Child & Parent Profile Screen for JAROOS.
+/// Features:
+/// - Forest green hero profile banner with level sprout badge
+/// - 4 Gamified Stat Capsules (Streak, Gems, League, Badges)
+/// - Daily Learning Goal card (20 min goal)
+/// - Mascot Avatar Picker
+/// - Protected Parent Gate access
+/// - Cut-the-Rope Frog Assistant ("Froggo")
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -43,15 +48,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     AvatarOption(id: 'panda_gentle', name: 'Pip', emoji: '🐼', backgroundColor: Color(0xFFB0BEC5)),
     AvatarOption(id: 'owl_wise', name: 'Oliver', emoji: '🦉', backgroundColor: Color(0xFF81D4FA)),
     AvatarOption(id: 'monkey_cheerful', name: 'Milo', emoji: '🐵', backgroundColor: Color(0xFFAED581)),
-  ];
-
-  static const List<String> _favoriteSubjectOptions = [
-    'Animals & Nature 🦁',
-    'Alphabet & Phonics 🔤',
-    'Numbers & Counting 🔢',
-    'Colors & Rainbows 🎨',
-    'Bedtime Stories 📖',
-    'Fun Rhymes 🎵',
   ];
 
   void _showEditProfileDialog(BuildContext context, String currentName, int currentAge) {
@@ -76,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: GoogleFonts.fredoka(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: const Color(0xFF132A13),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -87,7 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: GoogleFonts.nunito(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textSecondary,
+                        color: const Color(0xFF4B5563),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -99,42 +95,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
+
                     const SizedBox(height: 14),
 
-                    // Child Age Selector
+                    // Child Age Field
                     Text(
-                      'Age (${selectedAge} Years Old)',
+                      "Child's Age",
                       style: GoogleFonts.nunito(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textSecondary,
+                        color: const Color(0xFF4B5563),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [3, 4, 5, 6, 7, 8].map((age) {
-                          final isSelected = age == selectedAge;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ChoiceChip(
-                              label: Text('$age yrs'),
-                              selected: isSelected,
-                              onSelected: (_) => setDialogState(() => selectedAge = age),
-                              selectedColor: AppColors.primary,
-                              labelStyle: TextStyle(
-                                color: isSelected ? Colors.white : AppColors.textPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                    Wrap(
+                      spacing: 8,
+                      children: [3, 4, 5, 6, 7, 8].map((age) {
+                        final isSelected = selectedAge == age;
+                        return ChoiceChip(
+                          label: Text('$age yrs'),
+                          selected: isSelected,
+                          selectedColor: AppColors.duolingoLime,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          onSelected: (val) {
+                            setDialogState(() => selectedAge = age);
+                          },
+                        );
+                      }).toList(),
                     ),
+
                     const SizedBox(height: 20),
 
-                    // Actions
+                    // Action Buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -144,18 +139,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(width: 8),
                         ElevatedButton(
-                          onPressed: () {
-                            final newName = nameCtrl.text.trim();
-                            if (newName.isNotEmpty) {
-                              context.read<AuthProvider>().updateChildProfile(
-                                childName: newName,
-                                childAge: selectedAge,
-                              );
-                            }
-                            Navigator.pop(ctx);
+                          onPressed: () async {
+                            final auth = context.read<AuthProvider>();
+                            await auth.updateChildProfile(
+                              childName: nameCtrl.text.trim().isEmpty ? currentName : nameCtrl.text.trim(),
+                              childAge: selectedAge,
+                              avatar: auth.user?.avatar ?? 'star_hero',
+                              favoriteSubject: auth.user?.favoriteSubject ?? 'Alphabet & Phonics 🔤',
+                            );
+                            if (ctx.mounted) Navigator.pop(ctx);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: AppColors.duolingoLime,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
@@ -173,422 +168,430 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(
-          'Log Out? 👋',
-          style: GoogleFonts.fredoka(fontWeight: FontWeight.w700),
-        ),
-        content: Text(
-          'Are you sure you want to sign out from JAROOS? Your progress is saved safely.',
-          style: GoogleFonts.nunito(fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Stay Here'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await context.read<AuthProvider>().logout();
-              if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (r) => false);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-            child: const Text('Log Out'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final learning = context.watch<LearningProvider>();
     final isTablet = ResponsiveUtil.isTablet(context);
-    final horizontalPadding = ResponsiveUtil.getHorizontalPadding(context);
 
     final user = auth.user;
-    final childName = user?.childName ?? 'Aarav';
+    final childName = user?.childName ?? 'Aria';
     final childAge = user?.childAge ?? 5;
-    final parentEmail = user?.email ?? 'learner@jaroos.com';
-    final currentAvatarId = user?.avatar ?? 'star_hero';
-    final favoriteSubject = user?.favoriteSubject ?? 'Alphabet & Phonics 🔤';
-
+    final activeAvatarId = user?.avatar ?? 'star_hero';
     final activeAvatar = _avatarOptions.firstWhere(
-      (a) => a.id == currentAvatarId,
-      orElse: () => _avatarOptions.first,
+      (a) => a.id == activeAvatarId,
+      orElse: () => _avatarOptions[0],
     );
 
+    final streak = learning.streakDays;
+    final coins = learning.coins;
+    final badges = learning.unlockedAchievementsCount;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF7FCF2),
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
         title: Text(
           'My Profile 👤',
           style: GoogleFonts.fredoka(
             fontSize: isTablet ? 24 : 20,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: const Color(0xFF132A13),
           ),
         ),
         actions: [
           IconButton(
-            onPressed: () => _showEditProfileDialog(context, childName, childAge),
-            tooltip: 'Edit Profile',
-            icon: const Icon(Icons.edit_rounded, color: AppColors.primaryDark),
+            onPressed: () {
+              ParentGateDialog.show(
+                context,
+                onSuccess: () => Navigator.pushNamed(context, AppRoutes.parentDashboard),
+              );
+            },
+            tooltip: 'Parent Dashboard',
+            icon: const Icon(Icons.family_restroom_rounded, color: Color(0xFF132A13), size: 26),
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.splashGradient,
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 1. Child Profile Hero Banner
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: AppColors.softShadow,
-                    border: Border.all(color: const Color(0xFFF0F4F8)),
-                  ),
-                  child: Column(
-                    children: [
-                      // Active Mascot Avatar Disc
-                      Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: activeAvatar.backgroundColor,
-                          boxShadow: [
-                            BoxShadow(
-                              color: activeAvatar.backgroundColor.withValues(alpha: 0.4),
-                              blurRadius: 14,
-                              offset: const Offset(0, 4),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. Hero Profile Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.forestGreenDark,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            Container(
+                              width: 88,
+                              height: 88,
+                              decoration: BoxDecoration(
+                                color: activeAvatar.backgroundColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 3.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(activeAvatar.emoji, style: const TextStyle(fontSize: 44)),
+                              ),
+                            ),
+                            // Sprout Level Badge
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: const BoxDecoration(
+                                color: AppColors.duolingoLime,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Text('🌱', style: TextStyle(fontSize: 14)),
                             ),
                           ],
-                          border: Border.all(color: Colors.white, width: 4),
                         ),
-                        child: Center(
-                          child: Text(
-                            activeAvatar.emoji,
-                            style: const TextStyle(fontSize: 44),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              childName,
+                              style: GoogleFonts.fredoka(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: () => _showEditProfileDialog(context, childName, childAge),
+                              icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
+                              tooltip: 'Edit Profile',
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '$childAge Years Old',
+                          style: GoogleFonts.nunito(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.duolingoLime,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Level 3 Explorer 🌱',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                      // Child Name & Age Badge
-                      Text(
-                        childName,
-                        style: GoogleFonts.fredoka(
-                          fontSize: isTablet ? 26 : 22,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryLight,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Text(
-                              '$childAge Years Old',
-                              style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primaryDark,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.secondaryLight,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Text(
-                              'Little Explorer',
-                              style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.secondaryDark,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Parent Account: $parentEmail',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  const SizedBox(height: 16),
+
+                  // 2. 4 Stat Capsules Row (Streak, Gems, League, Badges)
+                  Row(
+                    children: [
+                      _buildStatCapsule('Streak', '$streak d', '🔥', const Color(0xFFFF9600)),
+                      const SizedBox(width: 8),
+                      _buildStatCapsule('Gems', '$coins', '💎', const Color(0xFFFFB300)),
+                      const SizedBox(width: 8),
+                      _buildStatCapsule('League', 'Silver', '🛡️', const Color(0xFF9E9E9E)),
+                      const SizedBox(width: 8),
+                      _buildStatCapsule('Badges', '$badges', '🌟', AppColors.duolingoLime),
                     ],
                   ),
-                ),
-                const SizedBox(height: 20),
 
-                // 2. Avatar Picker Carousel
-                Text(
-                  'Choose Your Mascot Avatar 🎨',
-                  style: GoogleFonts.fredoka(
-                    fontSize: isTablet ? 20 : 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    children: _avatarOptions.map((avatar) {
-                      final isSelected = avatar.id == currentAvatarId;
-                      return GestureDetector(
-                        onTap: () {
-                          context.read<AuthProvider>().updateChildProfile(avatar: avatar.id);
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 12),
-                          padding: const EdgeInsets.all(10),
+                  const SizedBox(height: 20),
+
+                  // 3. Daily Learning Goal Card (Matching Dashboard Card)
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
-                              width: isSelected ? 2.5 : 1.0,
-                            ),
-                            boxShadow: isSelected ? AppColors.softShadow : [],
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: const Icon(Icons.access_time_rounded, color: Color(0xFF4B5563), size: 22),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 52,
-                                height: 52,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: avatar.backgroundColor.withValues(alpha: 0.3),
-                                ),
-                                child: Center(
-                                  child: Text(avatar.emoji, style: const TextStyle(fontSize: 26)),
+                              Text(
+                                'Daily Goal: 20 min',
+                                style: GoogleFonts.fredoka(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF1F2937),
                                 ),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 2),
                               Text(
-                                avatar.name,
+                                '12 of 20 min completed today',
                                 style: GoogleFonts.nunito(
                                   fontSize: 12,
-                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                  color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF6B7280),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    }).toList(),
+                        const Text('🎁', style: TextStyle(fontSize: 22)),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 22),
 
-                // 3. Learning Milestones Highlights Grid
-                Text(
-                  'Learning Milestones 🏆',
-                  style: GoogleFonts.fredoka(
-                    fontSize: isTablet ? 20 : 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMilestoneCard('Total Stars', '${learning.totalStars}', '⭐', const Color(0xFFFFB300)),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildMilestoneCard('Golden Coins', '${learning.coins}', '🪙', const Color(0xFFFF7043)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMilestoneCard('Lessons Done', '${learning.totalLessonsCompleted}', '📚', const Color(0xFF4FC3F7)),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildMilestoneCard('Trophies', '${learning.unlockedAchievementsCount}', '🎖️', const Color(0xFF66BB6A)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
+                  const SizedBox(height: 22),
 
-                // 4. Favorite Subject Selector Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: AppColors.softShadow,
-                    border: Border.all(color: const Color(0xFFF0F4F8)),
+                  // 4. Mascot Avatar Picker Carousel
+                  Text(
+                    'Choose Your Mascot Avatar 🎨',
+                    style: GoogleFonts.fredoka(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF132A13),
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Favorite Learning Area ❤️',
-                            style: GoogleFonts.fredoka(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                  const SizedBox(height: 12),
+
+                  SizedBox(
+                    height: 100,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: _avatarOptions.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, i) {
+                        final avatar = _avatarOptions[i];
+                        final isSelected = avatar.id == activeAvatarId;
+
+                        return GestureDetector(
+                          onTap: () async {
+                            await auth.updateChildProfile(
+                              childName: childName,
+                              childAge: childAge,
+                              avatar: avatar.id,
+                              favoriteSubject: user?.favoriteSubject ?? 'Alphabet & Phonics 🔤',
+                            );
+                          },
+                          child: Container(
+                            width: 80,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isSelected ? AppColors.duolingoLime : const Color(0xFFE5E7EB),
+                                width: isSelected ? 2.5 : 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(avatar.emoji, style: const TextStyle(fontSize: 28)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  avatar.name,
+                                  style: GoogleFonts.fredoka(
+                                    fontSize: 12,
+                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                    color: isSelected ? AppColors.duolingoLime : const Color(0xFF4B5563),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const Text('🌟', style: TextStyle(fontSize: 18)),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _favoriteSubjectOptions.map((subject) {
-                          final isFav = subject == favoriteSubject;
-                          return ChoiceChip(
-                            label: Text(subject),
-                            selected: isFav,
-                            onSelected: (_) {
-                              context.read<AuthProvider>().updateChildProfile(favoriteSubject: subject);
-                            },
-                            selectedColor: AppColors.primaryLight,
-                            labelStyle: GoogleFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: isFav ? FontWeight.w800 : FontWeight.w600,
-                              color: isFav ? AppColors.primaryDark : AppColors.textPrimary,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // 5. Parent Dashboard & Log Out Buttons
-                OutlinedButton.icon(
-                  onPressed: () {
-                    ParentGateDialog.show(
-                      context,
-                      onSuccess: () => Navigator.pushNamed(context, AppRoutes.parentDashboard),
-                    );
-                  },
-                  icon: const Icon(Icons.family_restroom_rounded),
-                  label: const Text('Open Parent Dashboard 👨‍👩‍👧'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    side: const BorderSide(color: AppColors.primary, width: 1.5),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextButton.icon(
-                  onPressed: () => _showLogoutDialog(context),
-                  icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-                  label: Text(
-                    'Log Out Learner Account',
-                    style: GoogleFonts.nunito(
-                      color: AppColors.error,
-                      fontWeight: FontWeight.w700,
+                        );
+                      },
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-              ],
+
+                  const SizedBox(height: 22),
+
+                  // 5. Parent Zone Button
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          ParentGateDialog.show(
+                            context,
+                            onSuccess: () => Navigator.pushNamed(context, AppRoutes.parentDashboard),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEDE9FE),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(Icons.security_rounded, color: Color(0xFF7C3AED), size: 24),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Parent Dashboard & Controls 🔒',
+                                      style: GoogleFonts.fredoka(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF1F2937),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Screen time, learning analytics & PIN settings',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF6B7280),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF9CA3AF), size: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 90),
+                ],
+              ),
             ),
           ),
-        ),
+
+          // Embedded Frog Assistant
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: const FrogAssistantWidget(
+              compact: true,
+              customTip: "Ribbit! You look super cool in that avatar! 🌟",
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildMilestoneCard(String label, String value, String emoji, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppColors.softShadow,
-        border: Border.all(color: const Color(0xFFF0F4F8)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
+  Widget _buildStatCapsule(String label, String value, String emoji, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-            child: Text(emoji, style: const TextStyle(fontSize: 20)),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: GoogleFonts.fredoka(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
+          ],
+        ),
+        child: Column(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 3),
+            Text(
+              value,
+              style: GoogleFonts.fredoka(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1F2937),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: GoogleFonts.nunito(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF9CA3AF),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

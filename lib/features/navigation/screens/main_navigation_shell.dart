@@ -3,15 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import '../../learning_path/screens/learning_path_screen.dart';
+import '../../practice/screens/practice_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../progress/screens/progress_screen.dart';
-import '../../quiz/screens/quiz_screen.dart';
 
 /// Main Navigation Shell hosting the persistent 5-tab bottom navigation bar.
 /// Tabs:
 /// 1. 🏠 Home: Modern dashboard with streak, XP, League, and "Continue Learning"
 /// 2. 📖 Courses: Stepping stones learning path (Duolingo style)
-/// 3. 🤹 Practice: Quiz Arena, AI Sparky Buddy, Bedtime Stories
+/// 3. 🤹 Practice: Gamified Practice Hub with daily warmups & workstations
 /// 4. 📊 Progress: Telemetry, achievements, and parent portal
 /// 5. 👤 Profile: Child profile, avatar, coins, sound settings
 class MainNavigationShell extends StatefulWidget {
@@ -32,7 +32,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   final List<Widget> _screens = const [
     HomeScreen(),
     LearningPathScreen(showBackButton: false),
-    QuizScreen(),
+    PracticeScreen(),
     ProgressScreen(),
     ProfileScreen(),
   ];

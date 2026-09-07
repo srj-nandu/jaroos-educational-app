@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/services/audio_fx_service.dart';
 import '../../../core/services/tts_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../providers/learning_provider.dart';
+import '../../common/widgets/frog_assistant_widget.dart';
 
 enum PathNodeType {
   chest,
@@ -22,7 +24,7 @@ class PathNodeData {
   final String subtitle;
   final PathNodeType type;
   final String route;
-  final double xOffsetFactor; // -1.0 (left), 0.0 (center), 1.0 (right)
+  final double xRatio; // 0.0 (left) to 1.0 (right), 0.5 = center
 
   const PathNodeData({
     required this.id,
@@ -30,16 +32,19 @@ class PathNodeData {
     required this.subtitle,
     required this.type,
     required this.route,
-    required this.xOffsetFactor,
+    required this.xRatio,
   });
 }
 
-/// Interactive Duolingo-style Stepping Stones Learning Path Screen for JAROOS.
-/// Features:
-/// - Top Bar with back navigation and gems counter (💎 320)
-/// - Unit 1 Header Card: "A1 Beginner ∨ | Unit 1 . Getting Started"
-/// - Winding S-curve path with colorful nodes: completed checks, books, active headphones with "Start" tag, chests, and locked nodes
-/// - Landscape bottom with meadow hills and trees
+/// Authentic Duolingo-Style Stepping Stones Learning Path Screen for JAROOS.
+/// Exactly matches Screen 3 of the reference mockup:
+/// - Top Bar: Back navigation + Gems counter capsule (💎 320)
+/// - Unit 1 Header Card: "A1 Beginner ∨ | Unit 1 · Getting Started" with guidebook CTA
+/// - Winding Bezier S-Curve road connecting tactile 3D nodes
+/// - Floating "START" tooltip with downward arrow on active headphones node
+/// - Interactive reward chest with sparkle animation (+20 coins)
+/// - Decorative meadow flowers & grass tufts
+/// - Interactive Cut-the-Rope Frog Assistant ("Froggo") in the corner!
 class LearningPathScreen extends StatefulWidget {
   final bool showBackButton;
 
@@ -52,26 +57,31 @@ class LearningPathScreen extends StatefulWidget {
   State<LearningPathScreen> createState() => _LearningPathScreenState();
 }
 
-class _LearningPathScreenState extends State<LearningPathScreen> with SingleTickerProviderStateMixin {
+class _LearningPathScreenState extends State<LearningPathScreen>
+    with TickerProviderStateMixin {
   late AnimationController _pulseController;
+  late AnimationController _bounceController;
   late TtsService _ttsService;
+  late AudioFxService _audioFx;
+
+  bool _chestOpened = false;
 
   final List<PathNodeData> _unit1Nodes = const [
     PathNodeData(
       id: 1,
-      title: 'Bonus Chest',
-      subtitle: 'Mystery Reward',
-      type: PathNodeType.chest,
-      route: AppRoutes.progress,
-      xOffsetFactor: 0.0,
-    ),
-    PathNodeData(
-      id: 2,
       title: 'Alphabet Phonics',
       subtitle: 'Letters A to G',
       type: PathNodeType.completedCheck,
       route: AppRoutes.alphabet,
-      xOffsetFactor: -0.25,
+      xRatio: 0.50,
+    ),
+    PathNodeData(
+      id: 2,
+      title: 'Letter Sounds',
+      subtitle: 'Phonics & Speech',
+      type: PathNodeType.bookLesson,
+      route: AppRoutes.alphabet,
+      xRatio: 0.32,
     ),
     PathNodeData(
       id: 3,
@@ -79,7 +89,7 @@ class _LearningPathScreenState extends State<LearningPathScreen> with SingleTick
       subtitle: 'Bedtime Stories',
       type: PathNodeType.bookLesson,
       route: AppRoutes.stories,
-      xOffsetFactor: -0.22,
+      xRatio: 0.22,
     ),
     PathNodeData(
       id: 4,
@@ -87,117 +97,176 @@ class _LearningPathScreenState extends State<LearningPathScreen> with SingleTick
       subtitle: 'Everyday Phonics',
       type: PathNodeType.activeHeadphones,
       route: AppRoutes.alphabet,
-      xOffsetFactor: 0.15,
+      xRatio: 0.40,
     ),
     PathNodeData(
       id: 5,
       title: 'Daily Challenge',
-      subtitle: 'Quiz Arena Practice',
+      subtitle: 'Speed Phonics',
       type: PathNodeType.challengeDumbbell,
       route: AppRoutes.quiz,
-      xOffsetFactor: 0.20,
+      xRatio: 0.65,
     ),
     PathNodeData(
       id: 6,
-      title: 'Numbers Safari',
-      subtitle: 'Counting 1 to 10',
-      type: PathNodeType.locked,
-      route: AppRoutes.numbers,
-      xOffsetFactor: 0.0,
+      title: 'Treasure Chest',
+      subtitle: 'Bonus Gems & Stars',
+      type: PathNodeType.chest,
+      route: AppRoutes.progress,
+      xRatio: 0.78,
     ),
     PathNodeData(
       id: 7,
-      title: 'Rainbow Colors',
-      subtitle: 'Primary & Secondary',
+      title: 'Numbers Explorer',
+      subtitle: 'Counting 1 to 10',
+      type: PathNodeType.locked,
+      route: AppRoutes.numbers,
+      xRatio: 0.60,
+    ),
+    PathNodeData(
+      id: 8,
+      title: 'Color Mixing',
+      subtitle: 'Rainbow Lab',
       type: PathNodeType.locked,
       route: AppRoutes.colors,
-      xOffsetFactor: -0.25,
+      xRatio: 0.38,
+    ),
+    PathNodeData(
+      id: 9,
+      title: 'Animal Safari',
+      subtitle: 'Jungle & Sea Creatures',
+      type: PathNodeType.locked,
+      route: AppRoutes.animals,
+      xRatio: 0.26,
+    ),
+    PathNodeData(
+      id: 10,
+      title: 'Unit 1 Trophy',
+      subtitle: 'Mastery Arena Exam',
+      type: PathNodeType.locked,
+      route: AppRoutes.quiz,
+      xRatio: 0.50,
     ),
   ];
 
   @override
   void initState() {
     super.initState();
+    _ttsService = ModularTtsService();
+    _audioFx = AudioFxService(ttsService: _ttsService);
+
+    final isTest = WidgetsBinding.instance.runtimeType.toString().contains('Test');
+
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
-    final isTest = WidgetsBinding.instance.runtimeType.toString().contains('Test');
+
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
     if (!isTest) {
       _pulseController.repeat(reverse: true);
+      _bounceController.repeat(reverse: true);
     } else {
       _pulseController.value = 0.5;
+      _bounceController.value = 0.5;
     }
-    _ttsService = ModularTtsService();
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _bounceController.dispose();
     super.dispose();
   }
 
-  void _onNodeTap(PathNodeData node) {
+  void _onNodeTap(PathNodeData node) async {
+    await _audioFx.playClick();
+
     if (node.type == PathNodeType.locked) {
-      _ttsService.speak("This lesson is locked! Complete the earlier steps first!");
+      _ttsService.speak("This lesson is locked! Complete earlier lessons first!");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '🔒 Complete earlier lessons to unlock ${node.title}!',
-            style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+          content: Row(
+            children: [
+              const Icon(Icons.lock_rounded, color: Colors.amber, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Complete earlier steps to unlock ${node.title}!',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
           ),
-          backgroundColor: const Color(0xFF374151),
+          backgroundColor: const Color(0xFF1F2937),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       );
       return;
     }
 
     if (node.type == PathNodeType.chest) {
-      _ttsService.speak("You found a treasure chest! You earned 20 bonus coins!");
-      final learningProvider = Provider.of<LearningProvider>(context, listen: false);
-      learningProvider.addCoins(20);
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          backgroundColor: Colors.white,
-          title: Row(
-            children: [
-              const Text('🎁 ', style: TextStyle(fontSize: 28)),
-              Text(
-                'Treasure Found!',
-                style: GoogleFonts.fredoka(fontWeight: FontWeight.w700),
+      if (!_chestOpened) {
+        setState(() => _chestOpened = true);
+        context.read<LearningProvider>().addCoins(20);
+        await _audioFx.playApplause();
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (ctx) => Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('🎁', style: TextStyle(fontSize: 56)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Treasure Unlocked!',
+                    style: GoogleFonts.fredoka(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF132A13),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'You found +20 Gems & 1 Bonus Star!',
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF4B5563),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 18),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.duolingoLime,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                    ),
+                    child: Text(
+                      'Awesome!',
+                      style: GoogleFonts.fredoka(fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('✨ 🪙 +20 Coins Awarded! 🌟', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFFF8F00))),
-              const SizedBox(height: 10),
-              Text(
-                'Great job continuing your learning adventure! Keep going!',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(fontSize: 14, color: const Color(0xFF555555)),
-              ),
-            ],
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.duolingoLime,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              child: Text('Awesome!', style: GoogleFonts.fredoka(color: Colors.white)),
             ),
-          ],
-        ),
-      );
+          ),
+        );
+      } else {
+        _ttsService.speak("Chest already claimed! Keep going!");
+      }
       return;
     }
 
@@ -213,252 +282,218 @@ class _LearningPathScreenState extends State<LearningPathScreen> with SingleTick
     return Scaffold(
       backgroundColor: const Color(0xFFF7FCF2), // Soft clean meadow background
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            // 1. Top Header Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  if (widget.showBackButton)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF1E3A0B)),
-                      onPressed: () => Navigator.maybePop(context),
-                    )
-                  else
-                    const SizedBox(width: 8),
+            Column(
+              children: [
+                // 1. Top Header Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      if (widget.showBackButton)
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF132A13)),
+                          onPressed: () => Navigator.maybePop(context),
+                        )
+                      else
+                        const SizedBox(width: 8),
 
-                  Text(
-                    'Learning Path',
-                    style: GoogleFonts.fredoka(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF132A13),
-                    ),
+                      Text(
+                        'Learning Path',
+                        style: GoogleFonts.fredoka(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF132A13),
+                        ),
+                      ),
+
+                      const Spacer(),
+
+                      // Gems / XP Pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('💎', style: TextStyle(fontSize: 16)),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$coins',
+                              style: GoogleFonts.fredoka(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFE65100),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                ),
 
-                  const Spacer(),
-
-                  // Gems / XP Pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                // 2. Unit Banner Card (Matching Mockup Screen 3)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.forestGreenDark,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('💎', style: TextStyle(fontSize: 16)),
-                        const SizedBox(width: 6),
-                        Text(
-                          '$coins',
-                          style: GoogleFonts.fredoka(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFFE65100),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // 2. Unit Banner Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.forestGreenDark,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'A1 Beginner',
-                              style: GoogleFonts.fredoka(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 20),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Unit 1 . Getting Started',
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFFA5CFA6),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Unit Guidebook Icon
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.menu_book_rounded, color: Colors.white, size: 22),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // 3. Scrollable Stepping Stones Path
-            Expanded(
-              child: Stack(
-                children: [
-                  // Bottom rolling green hill & trees
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 120,
-                    child: CustomPaint(
-                      painter: _PathMeadowBottomPainter(),
-                    ),
-                  ),
-
-                  // Nodes List
-                  ListView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    children: [
-                      for (int i = 0; i < _unit1Nodes.length; i++) ...[
-                        if (i == 5) ...[
-                          // Unit 2 Divider
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                            child: Row(
-                              children: [
-                                const Expanded(child: Divider(color: Color(0xFFD1D5DB), thickness: 1.5)),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                                  child: Text(
-                                    'Unit 2',
-                                    style: GoogleFonts.fredoka(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF9CA3AF),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'A1 Beginner',
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.duolingoLime,
                                     ),
                                   ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.duolingoLime, size: 18),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Unit 1 · Getting Started',
+                                style: GoogleFonts.fredoka(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
                                 ),
-                                const Expanded(child: Divider(color: Color(0xFFD1D5DB), thickness: 1.5)),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Learn basic sounds & words',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Guidebook Pill Button
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(context, AppRoutes.alphabet),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.duolingoLime,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.duolingoLimeDark.withValues(alpha: 0.5),
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.menu_book_rounded, color: Colors.white, size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Guidebook',
+                                  style: GoogleFonts.fredoka(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ],
-
-                        _buildPathNodeItem(_unit1Nodes[i]),
-                        const SizedBox(height: 22),
-                      ],
-
-                      const SizedBox(height: 80),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPathNodeItem(PathNodeData node) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final offsetX = node.xOffsetFactor * (screenWidth * 0.28);
-
-    return Center(
-      child: Transform.translate(
-        offset: Offset(offsetX, 0),
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            // Floating "Start" Speech Bubble Tag for active node
-            if (node.type == PathNodeType.activeHeadphones)
-              Positioned(
-                top: -34,
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    final floatY = math.sin(_pulseController.value * 2 * math.pi) * 3.0;
-                    return Transform.translate(
-                      offset: Offset(0, floatY),
-                      child: child,
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.duolingoLime, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.duolingoLime.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: Text(
-                      'START',
-                      style: GoogleFonts.fredoka(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.duolingoLime,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
                   ),
                 ),
-              ),
 
-            // The Node Circle Button
-            GestureDetector(
-              onTap: () => _onNodeTap(node),
-              child: _buildNodeCircle(node),
+                const SizedBox(height: 6),
+
+                // 3. Winding Stepping Stones S-Curve Path Canvas
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final totalHeight = (_unit1Nodes.length * 96.0) + 120.0;
+                      final screenWidth = constraints.maxWidth;
+
+                      return SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: SizedBox(
+                          width: screenWidth,
+                          height: totalHeight,
+                          child: Stack(
+                            children: [
+                              // Background Bezier S-Curve Stepping Stones Road Painter
+                              CustomPaint(
+                                size: Size(screenWidth, totalHeight),
+                                painter: _WindingRoadPainter(
+                                  nodes: _unit1Nodes,
+                                  nodeSpacing: 96.0,
+                                  topPadding: 50.0,
+                                ),
+                              ),
+
+                              // Interactive 3D Nodes
+                              for (int i = 0; i < _unit1Nodes.length; i++) ...[
+                                _buildPositionedNode(
+                                  node: _unit1Nodes[i],
+                                  index: i,
+                                  screenWidth: screenWidth,
+                                  nodeY: 50.0 + (i * 96.0),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            // Cut-the-Rope Frog Assistant ("Froggo") in bottom-right corner!
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: const FrogAssistantWidget(
+                compact: true,
+                customTip: "Ribbit! Tap START to listen to phonics! 🎧",
+              ),
             ),
           ],
         ),
@@ -466,174 +501,292 @@ class _LearningPathScreenState extends State<LearningPathScreen> with SingleTick
     );
   }
 
-  Widget _buildNodeCircle(PathNodeData node) {
-    switch (node.type) {
-      case PathNodeType.chest:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFF48C72B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF33991C), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.16),
-                blurRadius: 8,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Text('🎁', style: TextStyle(fontSize: 30)),
-          ),
-        );
+  Widget _buildPositionedNode({
+    required PathNodeData node,
+    required int index,
+    required double screenWidth,
+    required double nodeY,
+  }) {
+    final nodeX = screenWidth * node.xRatio;
+    const nodeSize = 68.0;
 
-      case PathNodeType.completedCheck:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFF48C72B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF33991C), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 8,
-                offset: const Offset(0, 5),
+    return Positioned(
+      left: nodeX - (nodeSize / 2),
+      top: nodeY - (nodeSize / 2),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          // Floating Animated "START" Tooltip above active node (matching Mockup Screen 3)
+          if (node.type == PathNodeType.activeHeadphones)
+            Positioned(
+              top: -46,
+              child: AnimatedBuilder(
+                animation: _bounceController,
+                builder: (context, child) {
+                  final dy = math.sin(_bounceController.value * math.pi) * 5.0;
+                  return Transform.translate(
+                    offset: Offset(0, -dy),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.12),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            'START',
+                            style: GoogleFonts.fredoka(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.duolingoLime,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        // Downward Pointer Triangle
+                        CustomPaint(
+                          size: const Size(12, 6),
+                          painter: _TrianglePointerPainter(),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-            ],
+            ),
+
+          // Active Glow Pulse Ring
+          if (node.type == PathNodeType.activeHeadphones)
+            AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                final scale = 1.0 + (_pulseController.value * 0.18);
+                final opacity = (1.0 - _pulseController.value * 0.6).clamp(0.0, 1.0);
+                return Transform.scale(
+                  scale: scale,
+                  child: Container(
+                    width: nodeSize + 16,
+                    height: nodeSize + 16,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.duolingoLime.withValues(alpha: opacity),
+                        width: 3.5,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+          // Tactile 3D Circular Node Button
+          GestureDetector(
+            onTap: () => _onNodeTap(node),
+            child: _buildTactileNodeCircle(node, nodeSize),
           ),
-          child: const Center(
-            child: Icon(Icons.check_rounded, color: Colors.white, size: 34),
-          ),
-        );
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTactileNodeCircle(PathNodeData node, double size) {
+    Color topColor;
+    Color bottomRimColor;
+    Widget iconContent;
+
+    switch (node.type) {
+      case PathNodeType.completedCheck:
+        topColor = AppColors.duolingoLime;
+        bottomRimColor = AppColors.duolingoLimeDark;
+        iconContent = const Icon(Icons.check_rounded, color: Colors.white, size: 36);
+        break;
 
       case PathNodeType.bookLesson:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFF48C72B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF33991C), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 8,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(Icons.menu_book_rounded, color: Colors.white, size: 28),
-          ),
-        );
+        topColor = const Color(0xFF48C72B);
+        bottomRimColor = const Color(0xFF389E21);
+        iconContent = const Icon(Icons.menu_book_rounded, color: Colors.white, size: 30);
+        break;
 
       case PathNodeType.activeHeadphones:
-        return AnimatedBuilder(
-          animation: _pulseController,
-          builder: (context, child) {
-            final pulseScale = 1.0 + (_pulseController.value * 0.06);
-            return Transform.scale(
-              scale: pulseScale,
-              child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: AppColors.duolingoLime,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.duolingoLime.withValues(alpha: 0.5),
-                      blurRadius: 16,
-                      spreadRadius: 2,
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Icon(Icons.headphones_rounded, color: Colors.white, size: 34),
-                ),
-              ),
-            );
-          },
-        );
+        topColor = AppColors.duolingoLime;
+        bottomRimColor = AppColors.duolingoLimeDark;
+        iconContent = const Icon(Icons.headphones_rounded, color: Colors.white, size: 34);
+        break;
 
       case PathNodeType.challengeDumbbell:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFF48C72B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF33991C), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 8,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(Icons.fitness_center_rounded, color: Colors.white, size: 28),
-          ),
+        topColor = const Color(0xFFFF9600);
+        bottomRimColor = const Color(0xFFD97706);
+        iconContent = const Icon(Icons.fitness_center_rounded, color: Colors.white, size: 30);
+        break;
+
+      case PathNodeType.chest:
+        topColor = const Color(0xFFFFC800);
+        bottomRimColor = const Color(0xFFD97706);
+        iconContent = Text(
+          _chestOpened ? '✨' : '🎁',
+          style: const TextStyle(fontSize: 32),
         );
+        break;
 
       case PathNodeType.locked:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE5E7EB),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFCBD5E1), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 6,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(Icons.lock_rounded, color: Color(0xFF94A3B8), size: 26),
-          ),
-        );
+        topColor = const Color(0xFFE5E7EB);
+        bottomRimColor = const Color(0xFFCBD5E1);
+        iconContent = const Icon(Icons.lock_rounded, color: Color(0xFF9CA3AF), size: 28);
+        break;
     }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: topColor,
+        shape: BoxShape.circle,
+        boxShadow: [
+          // Tactile 3D bottom rim
+          BoxShadow(
+            color: bottomRimColor,
+            offset: const Offset(0, 6),
+            blurRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            offset: const Offset(0, 8),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Center(child: iconContent),
+    );
   }
 }
 
-/// Painter for the meadow green hill and trees at the bottom of the path
-class _PathMeadowBottomPainter extends CustomPainter {
+/// Custom Painter for the authentic winding Duolingo S-curve road and meadow scenery
+class _WindingRoadPainter extends CustomPainter {
+  final List<PathNodeData> nodes;
+  final double nodeSpacing;
+  final double topPadding;
+
+  _WindingRoadPainter({
+    required this.nodes,
+    required this.nodeSpacing,
+    required this.topPadding,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
-    // Green Meadow Hill
-    final hillPaint = Paint()..color = const Color(0xFF5ABF28);
-    final hillPath = Path()
-      ..moveTo(0, size.height * 0.45)
-      ..quadraticBezierTo(size.width * 0.5, size.height * 0.15, size.width, size.height * 0.40)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
+    if (nodes.length < 2) return;
+
+    final w = size.width;
+
+    // 1. Draw decorative scattered meadow flowers & grass tufts
+    final random = math.Random(42);
+    final flowerPaint = Paint()..color = const Color(0xFFF9A8D4).withValues(alpha: 0.7);
+    final grassPaint = Paint()
+      ..color = const Color(0xFF86EFAC).withValues(alpha: 0.8)
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+
+    for (int i = 0; i < 24; i++) {
+      final fx = random.nextDouble() * w;
+      final fy = random.nextDouble() * size.height;
+      if (i % 2 == 0) {
+        // Small flower
+        canvas.drawCircle(Offset(fx, fy), 3.5, flowerPaint);
+      } else {
+        // Grass blade
+        canvas.drawLine(Offset(fx, fy), Offset(fx - 3, fy - 7), grassPaint);
+        canvas.drawLine(Offset(fx, fy), Offset(fx + 3, fy - 6), grassPaint);
+      }
+    }
+
+    // 2. Build Bezier S-Curve Path through all node centers
+    final path = Path();
+    final firstX = w * nodes[0].xRatio;
+    final firstY = topPadding;
+    path.moveTo(firstX, firstY);
+
+    for (int i = 0; i < nodes.length - 1; i++) {
+      final currentX = w * nodes[i].xRatio;
+      final currentY = topPadding + (i * nodeSpacing);
+      final nextX = w * nodes[i + 1].xRatio;
+      final nextY = topPadding + ((i + 1) * nodeSpacing);
+
+      final controlY1 = currentY + (nodeSpacing * 0.5);
+      final controlY2 = nextY - (nodeSpacing * 0.5);
+
+      path.cubicTo(currentX, controlY1, nextX, controlY2, nextX, nextY);
+    }
+
+    // 3. Draw Thick Under-Road Shadow
+    final roadShadow = Paint()
+      ..color = const Color(0xFFD1D5DB).withValues(alpha: 0.45)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 22
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(path, roadShadow);
+
+    // 4. Draw Stepping Stones Track
+    final roadTrack = Paint()
+      ..color = const Color(0xFFE5E7EB).withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 16
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(path, roadTrack);
+
+    // 5. Draw Stepping Stone Dashes (duolingo road dots)
+    final stoneDashPaint = Paint()
+      ..color = const Color(0xFFCBD5E1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+
+    // Draw stepping stones circles between nodes
+    for (int i = 0; i < nodes.length - 1; i++) {
+      final currentX = w * nodes[i].xRatio;
+      final currentY = topPadding + (i * nodeSpacing);
+      final nextX = w * nodes[i + 1].xRatio;
+      final nextY = topPadding + ((i + 1) * nodeSpacing);
+
+      // Midpoint
+      final midX = (currentX + nextX) * 0.5;
+      final midY = (currentY + nextY) * 0.5;
+      canvas.drawCircle(Offset(midX, midY), 4, stoneDashPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WindingRoadPainter oldDelegate) => false;
+}
+
+/// Downward pointing triangle for the START speech tooltip
+class _TrianglePointerPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Colors.white;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
       ..close();
-    canvas.drawPath(hillPath, hillPaint);
+    canvas.drawPath(path, paint);
 
-    // Left Little Tree
-    final trunkPaint = Paint()..color = const Color(0xFF8D6E63);
-    canvas.drawRect(Rect.fromLTWH(18, size.height * 0.40, 8, 20), trunkPaint);
-    final leavesPaint = Paint()..color = const Color(0xFF388E3C);
-    canvas.drawCircle(Offset(22, size.height * 0.35), 18, leavesPaint);
-
-    // Right Little Tree
-    canvas.drawRect(Rect.fromLTWH(size.width - 28, size.height * 0.35, 8, 24), trunkPaint);
-    canvas.drawCircle(Offset(size.width - 24, size.height * 0.28), 20, leavesPaint);
+    final borderPaint = Paint()
+      ..color = const Color(0xFFE5E7EB)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawLine(const Offset(0, 0), Offset(size.width / 2, size.height), borderPaint);
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width / 2, size.height), borderPaint);
   }
 
   @override
