@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="monster_green">#8CE600</color>
+    <color name="splash_sky_blue">#28A8F7</color>
 </resources>
