@@ -9,6 +9,8 @@ abstract class TtsService {
   Future<void> speak(String text);
   Future<void> stop();
   Future<void> setSpeechRate(double rate);
+  Future<void> setPitch(double pitch);
+  Future<void> singPhrase(String text, {double pitch = 1.0, double rate = 0.40});
   bool get isSpeaking;
   ValueNotifier<String?> get currentSpeech;
 }
@@ -131,6 +133,50 @@ class ModularTtsService implements TtsService {
         await _flutterTts!.setSpeechRate(rate);
       } catch (_) {}
     }
+  }
+
+  @override
+  Future<void> setPitch(double pitch) async {
+    if (_flutterTts != null && _isInitialized) {
+      try {
+        await _flutterTts!.setPitch(pitch.clamp(0.5, 2.0));
+      } catch (_) {}
+    }
+  }
+
+  @override
+  Future<void> singPhrase(String text, {double pitch = 1.0, double rate = 0.40}) async {
+    final clean = text.trim();
+    if (clean.isEmpty) return;
+
+    _isSpeaking = true;
+    _currentSpeech.value = clean;
+    debugPrint('[JAROOS Sing] (Pitch: $pitch, Rate: $rate) "$clean"');
+
+    if (_isInitialized && _flutterTts != null) {
+      try {
+        await _flutterTts!.stop();
+        await _flutterTts!.setPitch(pitch.clamp(0.5, 2.0));
+        await _flutterTts!.setSpeechRate(rate.clamp(0.1, 1.0));
+        await _flutterTts!.speak(clean);
+        await _flutterTts!.setPitch(1.08);
+        await _flutterTts!.setSpeechRate(0.44);
+        _isSpeaking = false;
+        _currentSpeech.value = null;
+        return;
+      } catch (e) {
+        debugPrint('[JAROOS Sing Fallback] $e');
+      }
+    }
+
+    if (simulateDelay) {
+      final words = clean.split(' ').length;
+      final durationMs = (words * 280).clamp(400, 3000);
+      await Future.delayed(Duration(milliseconds: durationMs));
+    }
+
+    _isSpeaking = false;
+    _currentSpeech.value = null;
   }
 
   @override
