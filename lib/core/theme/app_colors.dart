@@ -21,6 +21,16 @@ class AppColors {
   static const Color electricBlue = Color(0xFF29B6F6); // Vibrant Blue
   static const Color peach = Color(0xFFFFAB91); // Soft Peach
 
+  // Monster Mascot & Pop-Art Theme (Welcome & Auth Screens)
+  static const Color monsterGreen = Color(0xFF8CE600); // Lush Lime Green Mascot
+  static const Color monsterGreenDark = Color(0xFF72BA00); // Darker Green for Buttons/Accents
+  static const Color monsterGreenField = Color(0xFF7BCF00); // Field background on green
+  static const Color monsterDarkNavy = Color(0xFF0D1333); // Deep contrast navy text & buttons
+  static const Color warmCream = Color(0xFFFAF8EE); // Warm Cream Welcome Canvas
+  static const Color periwinkle = Color(0xFF8EA4F8); // Playful top blob
+  static const Color googleRed = Color(0xFFEA4335); // Google social pill
+  static const Color facebookBlue = Color(0xFF4267B2); // Facebook social pill
+
   // Neutral & Canvas Colors
   static const Color background = Color(0xFFFFFDF7); // Gentle Cream Storybook
   static const Color surface = Colors.white;

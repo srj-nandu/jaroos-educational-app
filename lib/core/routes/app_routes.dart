@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../features/splash/screens/splash_screen.dart';
+import '../../features/authentication/screens/welcome_screen.dart';
 import '../../features/authentication/screens/login_screen.dart';
 import '../../features/authentication/screens/register_screen.dart';
 import '../../features/home/screens/home_screen.dart';
@@ -20,10 +21,11 @@ import '../../features/ai_buddy/screens/ai_buddy_screen.dart';
 import '../../features/ai_stories/screens/ai_story_generator_screen.dart';
 
 /// Centralized route registry and route generator for JAROOS.
-/// Maps all 19 screens and supplies playful custom page transitions.
+/// Maps all 20 screens and supplies playful custom page transitions.
 class AppRoutes {
   // Screen Route Identifiers
   static const String splash = '/';
+  static const String welcome = '/welcome';
   static const String login = '/login';
   static const String register = '/register';
   static const String home = '/home';
@@ -48,6 +50,9 @@ class AppRoutes {
     switch (settings.name) {
       case splash:
         return _buildPageRoute(const SplashScreen(), settings);
+
+      case welcome:
+        return _buildPageRoute(const WelcomeScreen(), settings);
 
       case login:
         return _buildPageRoute(const LoginScreen(), settings);

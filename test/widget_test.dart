@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:jaroos/main.dart';
 import 'package:jaroos/core/services/tts_service.dart';
 import 'package:jaroos/features/splash/screens/splash_screen.dart';
+import 'package:jaroos/features/authentication/screens/welcome_screen.dart';
 import 'package:jaroos/features/authentication/screens/login_screen.dart';
 import 'package:jaroos/features/authentication/screens/register_screen.dart';
 import 'package:jaroos/features/home/screens/home_screen.dart';
@@ -30,8 +31,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('Full Splash -> Login -> Register navigation and UI verification', (WidgetTester tester) async {
-    // Set a phone screen size to prevent any layout bounds issues
+  testWidgets('Full Splash -> Welcome -> Login -> Register navigation and UI verification', (WidgetTester tester) async {
+    // Set a phone screen size to prevent layout bounds issues
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
@@ -47,47 +48,59 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
 
-    // 3. Verify Login Screen elements
-    expect(find.byType(LoginScreen), findsOneWidget);
-    expect(find.text('Welcome Back! 👋'), findsOneWidget);
-    expect(find.text('Try Demo Learner Account (1-Tap)'), findsOneWidget);
+    // 3. Verify Welcome Screen elements (Screen 1 in design mockup)
+    expect(find.byType(WelcomeScreen), findsOneWidget);
+    expect(find.text("Let's learn &\nplay!"), findsOneWidget);
+    expect(find.text('Sign Up'), findsOneWidget);
+    expect(find.text('Log In'), findsOneWidget);
 
-    // 4. Test 1-Tap Demo button populates credentials
-    await tester.tap(find.text('Try Demo Learner Account (1-Tap)'));
+    // 4. Tap "Log In" to navigate to redesigned Login Screen (Screen 2 in design mockup)
+    await tester.tap(find.text('Log In'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.text('Ready to learn?'), findsOneWidget);
+    expect(find.text('Facebook'), findsOneWidget);
+    expect(find.text('Google'), findsOneWidget);
+    expect(find.text('Demo Login'), findsOneWidget);
+
+    // 5. Test Demo Login populates credentials
+    await tester.tap(find.text('Demo Login'));
     await tester.pumpAndSettle();
     expect(find.text('learner@jaroos.com'), findsAtLeastNWidgets(1));
 
-    // 5. Navigate to Register Screen
-    await tester.tap(find.text('Create Account'));
+    // 6. Navigate to Register Screen
+    final registerFinder = find.text('Sign Up');
+    expect(registerFinder, findsOneWidget);
+    await tester.tap(registerFinder);
     await tester.pumpAndSettle();
 
-    // 6. Verify Register Screen elements
+    // 7. Verify Register Screen elements
     expect(find.byType(RegisterScreen), findsOneWidget);
-    expect(find.text('Join the Adventure! 🚀'), findsOneWidget);
-    expect(find.text('Child Age'), findsOneWidget);
+    expect(find.text('Join JAROOS! 🌟'), findsOneWidget);
+    expect(find.text('Child’s Age:'), findsOneWidget);
+    expect(find.text('5 Yrs'), findsOneWidget);
 
-    // Check that age chips (3 to 8) exist
-    expect(find.text('3'), findsOneWidget);
-    expect(find.text('5'), findsOneWidget);
-    expect(find.text('8'), findsOneWidget);
-
-    // 7. Test Age selection
-    await tester.tap(find.text('6'));
+    // 8. Test Age selection chip
+    await tester.tap(find.text('6 Yrs'));
     await tester.pumpAndSettle();
-    expect(find.text('6 Years Old'), findsOneWidget);
 
-    // 8. Test Back to Login navigation
-    await tester.tap(find.text('Back to Login'));
+    // 9. Navigate back to Login Screen
+    await tester.tap(find.text('Sign In'));
     await tester.pumpAndSettle();
     expect(find.byType(LoginScreen), findsOneWidget);
 
-    // 9. Test Login submission with populated demo account
-    await tester.tap(find.text("Let's Play & Learn!"));
+    // Populate credentials again
+    await tester.tap(find.text('Demo Login'));
+    await tester.pumpAndSettle();
+
+    // 10. Test Login submission with "Let's JAROOS!"
+    await tester.tap(find.text("Let's JAROOS!"));
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
     expect(find.byType(LoginScreen), findsNothing);
 
-    // 10. Verify HomeScreen UI and modules
+    // 11. Verify HomeScreen UI and modules
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.text('Hi, Aarav! 👋'), findsOneWidget);
     expect(find.text('Learning Adventures 🚀'), findsOneWidget);
@@ -95,7 +108,7 @@ void main() {
     expect(find.text('Numbers'), findsOneWidget);
     expect(find.text('Colors'), findsOneWidget);
 
-    // 11. Navigate from Home to Alphabet Module
+    // 12. Navigate from Home to Alphabet Module
     await tester.tap(find.text('Alphabet'));
     await tester.pumpAndSettle();
     expect(find.byType(AlphabetScreen), findsOneWidget);
