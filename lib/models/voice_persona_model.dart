@@ -109,9 +109,26 @@ class VoicePersona {
     voiceKeywords: ['en-us', 'network', 'neural'],
   );
 
+  /// 6. Dora Explorer - Iconic cheerful explorer friend with bilingual cheers & backpack quests
+  static const VoicePersona dora = VoicePersona(
+    id: 'dora_explorer',
+    name: 'Dora Explorer',
+    role: 'Little Explorer 🎒',
+    emoji: '🎒',
+    description: 'Iconic, cheerful explorer girl with bilingual cheers, map quests, and "We did it!" celebrations!',
+    samplePhrase: "¡Hola! I am Dora! Grab your backpack and let's explore together! ¡Vámonos! 🎒⭐",
+    basePitch: 1.33,
+    excitedPitch: 1.37,
+    calmPitch: 1.22,
+    baseRate: 0.48,
+    accentColorHex: 0xFFE91E63, // Vibrant Dora Magenta
+    voiceKeywords: ['child', 'girl', 'young', 'female', 'sfg', 'es', 'eva', 'natural'],
+  );
+
   /// All available curated voice personas
   static const List<VoicePersona> all = [
     sparky,
+    dora,
     lily,
     leo,
     emma,

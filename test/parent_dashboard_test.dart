@@ -197,8 +197,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify voice persona cards are present
-      expect(find.text('5 Voices'), findsOneWidget);
+      expect(find.text('6 Voices'), findsOneWidget);
       expect(find.text('Sparky'), findsOneWidget);
+      expect(find.text('Dora Explorer'), findsOneWidget);
       expect(find.text('Sweet Lily'), findsOneWidget);
       expect(find.text('Leo Explorer'), findsOneWidget);
       expect(find.text('Teacher Emma'), findsOneWidget);
@@ -206,6 +207,15 @@ void main() {
 
       // Default selected voice is Sparky
       expect(parent.settings.selectedVoiceId, 'sparky_kid');
+
+      // Tap Dora Explorer to switch voice
+      await tester.scrollUntilVisible(find.text('Dora Explorer'), 200);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dora Explorer'));
+      await tester.pumpAndSettle();
+
+      // Verify selection updated to dora_explorer
+      expect(parent.settings.selectedVoiceId, 'dora_explorer');
 
       // Tap Sweet Lily to switch voice
       await tester.scrollUntilVisible(find.text('Sweet Lily'), 200);

@@ -125,6 +125,14 @@ class ModularTtsService implements TtsService {
                 }
                 if (name.contains('sfg')) score += 50;
                 if (name.contains('david') || name.contains('male')) score -= 80;
+              } else if (persona.id == 'dora_explorer') {
+                if (name.contains('child') || name.contains('girl') || name.contains('young') || name.contains('eva') || name.contains('sfg')) {
+                  score += 65;
+                }
+                if (name.contains('es') || name.contains('spanish') || name.contains('mexico') || name.contains('latin')) {
+                  score += 40;
+                }
+                if (name.contains('david') || name.contains('male')) score -= 80;
               } else if (persona.id == 'sweet_lily') {
                 if (name.contains('female') || name.contains('woman') || name.contains('girl') || name.contains('eva') || name.contains('jenny')) {
                   score += 60;
@@ -182,57 +190,90 @@ class ModularTtsService implements TtsService {
     var text = raw.trim();
     if (text.isEmpty) return text;
 
+    final isDora = _activePersonaId == 'dora_explorer';
+
     // 1. Module intro hooks & child wow factors
     if (text.startsWith("Opening ") && text.endsWith(" practice!")) {
       final module = text.substring("Opening ".length, text.length - " practice!".length);
-      switch (module.toLowerCase()) {
-        case 'alphabet':
-          return "Yay! Let's explore the Alphabet! A B C fun! Wow! 🔤🎈";
-        case 'numbers':
-          return "Whoa! Number adventure! 1, 2, 3... Let's count together! ⭐";
-        case 'colors':
-          return "Ooh, pretty colors! Rainbow magic time! Sparkle sparkle! 🎨✨";
-        case 'shapes':
-          return "Super cool shapes! Let's spot circles and triangles! Wow! 🔷";
-        case 'animals':
-          return "Rooaaarr! Animal safari time! Let's meet our wild friends! 🦁🐾";
-        case 'fruits':
-          return "Yum yum! Juicy fruits and crunchy veggies! So yummy! 🍎🥕";
-        case 'stories':
-          return "Ooh, storybook magic! Settle in for a wonderful tale! 📖✨";
-        case 'rhymes':
-          return "Sing-along party! Let's sing and dance together! 🎵💃";
-        case 'quiz':
-          return "Woo-hooo! Quiz challenge! You've got this, superstar! 🏆⭐";
-        case 'ai buddy':
-          return "Hello friend! Sparky is super excited to play with you! 🤖🎈";
-        case 'ai stories':
-          return "Abracadabra! Let's create our very own magical story! 🪄✨";
-        default:
-          return "Yay! Let's jump into $module! Here we go! 🚀";
+      if (isDora) {
+        switch (module.toLowerCase()) {
+          case 'alphabet':
+            return "¡Vámonos! Let's explore the Alphabet! Say the letters with me! 🔤🎒";
+          case 'numbers':
+            return "¡Uno, dos, tres! Let's count together on our adventure! 1, 2, 3! ⭐🎒";
+          case 'colors':
+            return "¡Colores! Beautiful rainbow magic! Can you spot the colors? 🎨✨";
+          case 'shapes':
+            return "Shape quest! Let's find circles and triangles together! ¡Vámonos! 🔷🎒";
+          case 'animals':
+            return "¡Mira! Animal safari! Say it with me... Rooaaarr! 🦁🎒";
+          case 'fruits':
+            return "Yum yum! Crunchy healthy snacks for our backpack! 🍎🍌";
+          case 'stories':
+            return "Storytime adventure! Open the magical book! ¡Vámonos! 📖✨";
+          case 'rhymes':
+            return "Sing-along fiesta! Sing and dance with Dora! 🎵💃";
+          case 'quiz':
+            return "Super Explorer Challenge! You can do it! ¡Vámonos! 🏆🎒";
+          case 'ai buddy':
+            return "¡Hola amigo! Dora is super excited to explore with you! 🎒✨";
+          case 'ai stories':
+            return "¡Magia! Let's create an epic adventure story! 🪄🎒";
+          default:
+            return "¡Vámonos! Let's explore $module together! 🎒🚀";
+        }
+      } else {
+        switch (module.toLowerCase()) {
+          case 'alphabet':
+            return "Yay! Let's explore the Alphabet! A B C fun! Wow! 🔤🎈";
+          case 'numbers':
+            return "Whoa! Number adventure! 1, 2, 3... Let's count together! ⭐";
+          case 'colors':
+            return "Ooh, pretty colors! Rainbow magic time! Sparkle sparkle! 🎨✨";
+          case 'shapes':
+            return "Super cool shapes! Let's spot circles and triangles! Wow! 🔷";
+          case 'animals':
+            return "Rooaaarr! Animal safari time! Let's meet our wild friends! 🦁🐾";
+          case 'fruits':
+            return "Yum yum! Juicy fruits and crunchy veggies! So yummy! 🍎🥕";
+          case 'stories':
+            return "Ooh, storybook magic! Settle in for a wonderful tale! 📖✨";
+          case 'rhymes':
+            return "Sing-along party! Let's sing and dance together! 🎵💃";
+          case 'quiz':
+            return "Woo-hooo! Quiz challenge! You've got this, superstar! 🏆⭐";
+          case 'ai buddy':
+            return "Hello friend! Sparky is super excited to play with you! 🤖🎈";
+          case 'ai stories':
+            return "Abracadabra! Let's create our very own magical story! 🪄✨";
+          default:
+            return "Yay! Let's jump into $module! Here we go! 🚀";
+        }
       }
     }
 
-    // 2. Transform dry educational statements into bubbly child praise
-    text = text.replaceAll('Awesome! That is correct!', 'Woo-hooo! Bingo! You got it right! Wow! High five! ⭐');
-    text = text.replaceAll('Not quite!', 'Aww, so close! You can do it! Let\'s try together! 🎈');
-    text = text.replaceAll('Quiz completed!', 'Tadaaa! Quiz completed! You\'re a superstar! 🏆✨');
-    text = text.replaceAll('Fantastic effort!', 'Super-duper amazing effort! High five! 🌟');
-    text = text.replaceAll('Congratulations!', 'Yaaay! Hoo-ray! You did it! Congratu-lations! 🎉🏆');
-    text = text.replaceAll('Great job!', 'Wowww! Fantastic job, little explorer! 🌟');
-
-    // 3. Animal sound enhancements
-    text = text.replaceAll('says Roar', 'says... Rooaaarrr! 🦁 Wow, mighty lion!');
-    text = text.replaceAll('says "Meow Meow"', 'says... Mee-owww, mee-oww! 🐱 So cute!');
-    text = text.replaceAll('says Moo', 'says... Moo-mooooo! 🐮 Sweet milk!');
-    text = text.replaceAll('says Quack', 'says... Quack-quack-quack! 🦆 Splish splash!');
-    text = text.replaceAll('says Oink', 'says... Oink-oink-oink! 🐷 Roll in mud!');
-    text = text.replaceAll('says Baa', 'says... Baaa-baa! 🐑 Soft wool!');
-
-    // 4. Learning path & interaction wow factors
-    text = text.replaceAll('You found a treasure chest! You earned 20 bonus coins!', 'Whoaaa! A magical treasure chest popped open! Sparkle, sparkle! You won 20 shiny bonus coins! 💎✨');
-    text = text.replaceAll('This lesson is locked! Complete the earlier steps first!', 'Uh-oh! That lock is still sleeping! Finish the earlier step to wake it up! 🗝️✨');
-    text = text.replaceAll("Let's start ", "Yippee! Let's jump into ");
+    // 2. Transform dry educational statements into energetic praise
+    if (isDora) {
+      text = text.replaceAll('Awesome! That is correct!', 'We did it! ¡Lo hicimos! That is correct! Super! High five! 🎒⭐');
+      text = text.replaceAll('Not quite!', 'Aww, keep trying! We can do it together! Check your map! 🧭🎒');
+      text = text.replaceAll('Quiz completed!', 'We did it! We did it! ¡Lo hicimos! Hooray! You are a super explorer! 🏆🎒');
+      text = text.replaceAll('Fantastic effort!', '¡Excelente! Super explorer effort! High five! 🌟🎒');
+      text = text.replaceAll('Congratulations!', '¡Felicidades! We did it! Hooray! You did it! 🎉🎒');
+      text = text.replaceAll('Great job!', '¡Muy bien! Great job, super explorer! 🌟🎒');
+      text = text.replaceAll('You found a treasure chest! You earned 20 bonus coins!', '¡Mira! You found the golden treasure chest! We did it! 20 shiny coins for your backpack! 💎🎒');
+      text = text.replaceAll('This lesson is locked! Complete the earlier steps first!', 'Uh-oh! Check your map! We need to visit the earlier step first! 🗝️🎒');
+      text = text.replaceAll("Let's start ", "¡Vámonos! Let's explore ");
+    } else {
+      text = text.replaceAll('Awesome! That is correct!', 'Woo-hooo! Bingo! You got it right! Wow! High five! ⭐');
+      text = text.replaceAll('Not quite!', 'Aww, so close! You can do it! Let\'s try together! 🎈');
+      text = text.replaceAll('Quiz completed!', 'Tadaaa! Quiz completed! You\'re a superstar! 🏆✨');
+      text = text.replaceAll('Fantastic effort!', 'Super-duper amazing effort! High five! 🌟');
+      text = text.replaceAll('Congratulations!', 'Yaaay! Hoo-ray! You did it! Congratu-lations! 🎉🏆');
+      text = text.replaceAll('Great job!', 'Wowww! Fantastic job, little explorer! 🌟');
+      text = text.replaceAll('You found a treasure chest! You earned 20 bonus coins!', 'Whoaaa! A magical treasure chest popped open! Sparkle, sparkle! You won 20 shiny bonus coins! 💎✨');
+      text = text.replaceAll('This lesson is locked! Complete the earlier steps first!', 'Uh-oh! That lock is still sleeping! Finish the earlier step to wake it up! 🗝️✨');
+      text = text.replaceAll("Let's start ", "Yippee! Let's jump into ");
+    }
 
     // 5. Module item child-friendly enrichments
     if (text.startsWith("Color ") && text.contains("! Like ")) {
