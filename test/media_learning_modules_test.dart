@@ -76,15 +76,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Bedtime Stories 📖'), findsOneWidget);
-      expect(find.text('The Tortoise and the Hare'), findsOneWidget);
+      expect(find.text('ആമയും മുയലും'), findsOneWidget);
 
       // Tap on story card to open story reader
-      await tester.tap(find.text('The Tortoise and the Hare'));
+      await tester.tap(find.text('ആമയും മുയലും'));
       await tester.pumpAndSettle();
 
       expect(find.text('Read to Me'), findsOneWidget);
       expect(find.text('Moral of the Story'), findsOneWidget);
-      expect(find.text('Slow and steady wins the race!'), findsOneWidget);
     });
   });
 

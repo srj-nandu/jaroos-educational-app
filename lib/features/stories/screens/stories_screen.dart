@@ -16,6 +16,7 @@ class StoryItem {
   final String summary;
   final List<String> paragraphs;
   final Color themeColor;
+  final String language; // 'en' or 'ml'
 
   const StoryItem({
     required this.title,
@@ -25,15 +26,132 @@ class StoryItem {
     required this.summary,
     required this.paragraphs,
     required this.themeColor,
+    this.language = 'en',
   });
 }
 
 /// Interactive Bedtime & Moral Stories Module for JAROOS.
 /// Features classic children's moral tales with interactive "Read to Me" TTS narration.
-class StoriesScreen extends StatelessWidget {
+class StoriesScreen extends StatefulWidget {
   const StoriesScreen({super.key});
 
+  @override
+  State<StoriesScreen> createState() => _StoriesScreenState();
+}
+
+class _StoriesScreenState extends State<StoriesScreen> {
+  String _selectedFilter = 'all'; // 'all', 'ml', 'en'
+
   static const List<StoryItem> _storiesList = [
+    // ==========================================
+    // 🌴 MALAYALAM BEDTIME & MORAL STORIES (ml)
+    // ==========================================
+    StoryItem(
+      title: 'ആമയും മുയലും',
+      emoji: '🐢',
+      duration: '3 min read',
+      moral: 'സ്ഥിരോത്സാഹവും ക്ഷമയുമുണ്ടെങ്കിൽ വിജയം തീർച്ച!',
+      summary: 'വേഗത്തിൽ ഓടുന്ന മുയലും പതുക്കെ നടക്കുന്ന ആമയും തമ്മിലുള്ള രസകരമായ ഓട്ടപ്പന്തയം.',
+      language: 'ml',
+      themeColor: Color(0xFF2E7D32),
+      paragraphs: [
+        'പണ്ട് പണ്ടൊരു പച്ചപ്പുല്ല് നിറഞ്ഞ വലിയ കാട്ടിൽ അഹങ്കാരിയായ ഒരു മുയൽ ഉണ്ടായിരുന്നു. തനിക്ക് വേഗത്തിൽ ഓടാൻ കഴിയുമെന്ന് അവൻ എപ്പോഴും കാട്ടിലെ മൃഗങ്ങളോട് വീമ്പു പറയുമായിരുന്നു.',
+        'മുയലിന്റെ വീരവാദം കേട്ട് മടുത്ത ശാന്തനായ ഒരു ആമ അവനെ ഒരു സൗഹൃദ ഓട്ടപ്പന്തയത്തിന് ക്ഷണിച്ചു. "നീ എന്നെ ഓടി തോൽപ്പിക്കുമോ?" എന്ന് ചോദിച്ച് മുയൽ ഉറക്കെ ചിരിച്ചു.',
+        'പന്തയം തുടങ്ങി! മുയൽ മിന്നൽ വേഗത്തിൽ മുന്നോട്ട് കുതിച്ചു. പാതിവഴി എത്തിയപ്പോൾ പിന്നിലേക്ക് നോക്കിയ മുയൽ ആമയെ കണ്ടതേയില്ല.',
+        '"ആമ പതുക്കെയല്ലേ വരുന്നുള്ളൂ, ഞാൻ ഒരു മരത്തണലിൽ കുറച്ചു നേരം വിശ്രമിക്കാം" എന്ന് കരുതി മുയൽ സുഖമായി ഉറങ്ങിപ്പോയി.',
+        'എന്നാൽ ആമ ഒട്ടും നിർത്താതെ, പതുക്കെയാണെങ്കിലും തന്റെ ലക്ഷ്യത്തിലേക്ക് നടന്നു കൊണ്ടേയിരുന്നു.',
+        'മുയൽ ഉണർന്നു നോക്കുമ്പോൾ ആമ വിജയരേഖ കടക്കുന്നതാണ് കണ്ടത്! കാട്ടിലെ മൃഗങ്ങളെല്ലാം ആമയെ സന്തോഷത്തോടെ കൈയടിച്ച് അഭിനന്ദിച്ചു. സ്ഥിരോത്സാഹവും കഠിനാധ്വാനവും കൊണ്ടേ വിജയം കൈവരിക്കാൻ കഴിയൂ എന്ന് മുയൽ മനസ്സിലാക്കി.',
+      ],
+    ),
+    StoryItem(
+      title: 'ബുദ്ധിമാനായ കാക്ക',
+      emoji: '🦅',
+      duration: '2 min read',
+      moral: 'ബുദ്ധിയുണ്ടെങ്കിൽ ഏത് വിഷമഘട്ടവും തരണം ചെയ്യാം!',
+      summary: 'ദാഹിച്ചുവലഞ്ഞ കാക്ക കല്ലുകൾ പെറുക്കിയിട്ട് കുടത്തിലെ വെള്ളം കുടിക്കുന്ന കൗതുകക്കഥ.',
+      language: 'ml',
+      themeColor: Color(0xFF1976D2),
+      paragraphs: [
+        'കടുത്ത വേനൽക്കാലത്ത് കഠിനമായ ദാഹം കാരണം വലഞ്ഞ ഒരു കാക്ക വെള്ളം തേടി കാടും നാടും അലഞ്ഞു പറന്നു.',
+        'ഒടുവിൽ ഒരു വീടിന്റെ മുറ്റത്ത് ഒരു മൺകുടം ഇരിക്കുന്നത് കാക്ക കണ്ടു. അവൻ അതിയായ സന്തോഷത്തോടെ കുടത്തിന്റെ വക്കിലിരുന്നു.',
+        'പക്ഷേ കുടത്തിന്റെ അടിയിൽ വളരെ കുറച്ചു വെള്ളമേ ഉണ്ടായിരുന്നുള്ളൂ. കാക്കയുടെ കൊക്ക് വെള്ളത്തിലേക്ക് എത്തിയില്ല.',
+        'നിരാശപ്പെടാതെ അവൻ ചുറ്റും നോക്കി. മുറ്റത്ത് ചെറിയ ചരൽക്കല്ലുകൾ കിടക്കുന്നത് അവന്റെ ശ്രദ്ധയിൽപ്പെട്ടു.',
+        'കാക്ക ഓരോ കല്ലുകളായി കൊക്കിലെടുത്ത് കുടത്തിലേക്ക് ഇട്ടു. കല്ലുകൾ വീണതോടെ കുടത്തിലെ വെള്ളം സാവധാനം ഉയർന്നു വന്നു!',
+        'വെള്ളം കുടത്തിന്റെ വക്കോളം എത്തിയപ്പോൾ കാക്ക വയറുനിറയെ വെള്ളം കുടിച്ച് ദാഹം തീർത്തു. ബുദ്ധിയും ക്ഷമയുമുണ്ടെങ്കിൽ ഏത് പ്രതിസന്ധിയും നേരിടാം എന്ന് കാക്ക നമ്മെ പഠിപ്പിക്കുന്നു.',
+      ],
+    ),
+    StoryItem(
+      title: 'സിംഹവും കൊച്ചു എലിയും',
+      emoji: '🦁',
+      duration: '3 min read',
+      moral: 'ഒരു ജീവിയെയും നിസ്സാരനായി കാണരുത്; സ്നേഹവും ഉപകാരവും എന്നും തിരികെ ലഭിക്കും!',
+      summary: 'മൃഗരാജനായ സിംഹത്തെ വേട്ടക്കാരന്റെ വലയിൽ നിന്നും രക്ഷിക്കുന്ന കുഞ്ഞൻ എലിയുടെ കഥ.',
+      language: 'ml',
+      themeColor: Color(0xFFE65100),
+      paragraphs: [
+        'ഒരു കാട്ടിൽ ശക്തിമാനായ ഒരു സിംഹം ഗുഹയ്ക്ക് മുന്നിൽ സുഖമായി ഉറങ്ങുകയായിരുന്നു. അപ്പോൾ അബദ്ധത്തിൽ ഒരു ചെറിയ എലി സിംഹത്തിന്റെ മൂക്കിൻ തുമ്പിലൂടെ ഓടിക്കയറി.',
+        'ഉറക്കമുണർന്ന സിംഹം ദേഷ്യത്തോടെ തന്റെ വലിയ കൈപ്പത്തി കൊണ്ട് എലിയെ പിടികൂടി: "എന്റെ ഉറക്കം കളഞ്ഞ നിന്നെ ഞാൻ കൊല്ലും!"',
+        'ഭയന്നുവിറച്ച എലി കൈകൂപ്പി പറഞ്ഞു: "പ്രഭോ, എന്നോട് ക്ഷമിക്കണം! ജീവൻ രക്ഷിച്ചാൽ എന്നെങ്കിലും ഞാൻ അങ്ങയെ സഹായിക്കാം!" കൊച്ചു എലി തന്നെ സഹായിക്കുമെന്ന് കേട്ട് സിംഹം ചിരിച്ചു, എങ്കിലും ദയ തോന്നി അവനെ വിട്ടയച്ചു.',
+        'കുറച്ചു ദിവസങ്ങൾക്ക് ശേഷം സിംഹം വേട്ടക്കാരുടെ ശക്തമായ കയർവലയിൽ കുടുങ്ങിപ്പോയി. രക്ഷപ്പെടാൻ കഴിയാതെ സിംഹം ഉച്ചത്തിൽ അലറി.',
+        'സിംഹത്തിന്റെ അലർച്ച കേട്ട എലി ഉടൻ തന്നെ ഓടിയെത്തി. തന്റെ മൂർച്ചയുള്ള കൊച്ചു പല്ലുകൾ കൊണ്ട് വലയിലെ കയറുകൾ ഓരോന്നായി കടിച്ചുമുറിച്ചു!',
+        'സിംഹം പൂർണ്ണമായി സ്വതന്ത്രനായി! സന്തോഷത്തോടെ സിംഹം പറഞ്ഞു: "നന്ദി കൂട്ടുകാരാ, ചെറിയവർക്കും വലിയ കാര്യങ്ങൾ ചെയ്യാൻ കഴിയുമെന്ന് നീ ഇന്ന് എന്നെ പഠിപ്പിച്ചു!"',
+      ],
+    ),
+    StoryItem(
+      title: 'ആനയും തയ്യൽക്കാരനും',
+      emoji: '🐘',
+      duration: '3 min read',
+      moral: 'ആരെയും നോവിക്കരുത്; മറ്റുള്ളവരോട് എപ്പോഴും സ്നേഹത്തോടെ പെരുമാറുക!',
+      summary: 'ക്ഷേത്രത്തിലെ ആനയും തയ്യൽക്കാരനും തമ്മിലുള്ള അസാധാരണ സൗഹൃദവും വലിയ ഗുണപാഠവും.',
+      language: 'ml',
+      themeColor: Color(0xFF00897B),
+      paragraphs: [
+        'കേരളത്തിലെ ഒരു സുന്ദരമായ ഗ്രാമത്തിൽ ഒരു അമ്പലപ്പുഴ ആനയുണ്ടായിരുന്നു. ദിവസവും പുഴയിൽ കുളിക്കാൻ പോകുമ്പോൾ ആന വഴിയിലുള്ള തയ്യൽക്കടയിൽ എത്തുമായിരുന്നു.',
+        'തയ്യൽക്കാരൻ ആനയ്ക്ക് ദിവസവും പഴങ്ങളും കരിമ്പും കൊടുക്കുമായിരുന്നു. അവർ തമ്മിൽ നല്ല സൗഹൃദത്തിലായി.',
+        'ഒരു ദിവസം തയ്യൽക്കാരന് എന്തോ വലിയ ദേഷ്യമുണ്ടായിരുന്നു. തുമ്പിക്കൈ നീട്ടിയ ആനയ്ക്ക് പഴം കൊടുക്കുന്നതിന് പകരം തയ്യൽക്കാരൻ ഒരു സൂചികൊണ്ട് ആനയുടെ തുമ്പിക്കൈയിൽ കുത്തി!',
+        'വേദന സഹിച്ച ആന ഒന്നും ചെയ്യാതെ ശാന്തനായി പുഴയിലേക്ക് നടന്നുപോയി.',
+        'കുളി കഴിഞ്ഞ് തിരികെ വരുമ്പോൾ ആന തന്റെ തുമ്പിക്കൈയിൽ കലക്കവെള്ളം നിറച്ചുവെച്ചിരുന്നു.',
+        'തയ്യൽക്കടയുടെ മുന്നിൽ എത്തിയപ്പോൾ ആന തുമ്പിക്കൈയിലെ ചെളി വെള്ളം മുഴുവൻ കടയിലെ പുതിയ തുണികളിലേക്ക് ചീറ്റി! തുണികളെല്ലാം വൃത്തികേടായി. ആരെയും വെറുതെ ഉപദ്രവിക്കരുതെന്ന് തയ്യൽക്കാരൻ വലിയ പാഠം പഠിച്ചു.',
+      ],
+    ),
+    StoryItem(
+      title: 'സ്വർണ്ണമുട്ടയിടുന്ന താറാവ്',
+      emoji: '🪿',
+      duration: '3 min read',
+      moral: 'അത്യാഗ്രഹം വലിയ നാശത്തിന് കാരണമാകും; ഉള്ളതുകൊണ്ട് സംതൃപ്തരാവുക!',
+      summary: 'ദിവസവും സ്വർണ്ണമുട്ടയിടുന്ന അത്ഭുത താറാവും അത്യാഗ്രഹിയായ കർഷകനും.',
+      language: 'ml',
+      themeColor: Color(0xFFF57C00),
+      paragraphs: [
+        'ഒരു പാവം കർഷകന്റെ വീട്ടിൽ ഒരു അത്ഭുത താറാവ് ഉണ്ടായിരുന്നു. ആ താറാവ് ദിവസവും രാവിലെ ഒരു സ്വർണ്ണമുട്ട ഇടുമായിരുന്നു.',
+        'കർഷകൻ ആ മുട്ട ചന്തയിൽ വിറ്റ് സാവധാനം ധനികനായി മാറി. എന്നാൽ കൂടുതൽ പണം കിട്ടിയതോടെ അവന്റെ അത്യാഗ്രഹവും കൂടി.',
+        'അവൻ വിചാരിച്ചു: "ദിവസവും ഓരോ മുട്ടയ്ക്കായി എന്തിന് കാത്തിരിക്കണം? ഈ താറാവിന്റെ വയറ്റിൽ ഒരുപാട് സ്വർണ്ണം ഉണ്ടാകും, അതെല്ലാം ഒറ്റയടിക്ക് എടുക്കാം!"',
+        'അത്യാഗ്രഹം മൂത്ത കർഷകൻ താറാവിനെ കൊന്ന് വയറു തുറന്നു നോക്കി. എന്നാൽ സാധാരണ താറാവിനെപ്പോലെ തന്നെയായിരുന്നു അതിന്റെ ഉള്ളും!',
+        'താറാവ് ചത്തുപോയി. ദിവസവും കിട്ടിക്കൊണ്ടിരുന്ന സ്വർണ്ണമുട്ടയും നഷ്ടമായി. കർഷകൻ തലയിൽ കൈവെച്ച് പൊട്ടിക്കരഞ്ഞു.',
+        'അത്യാഗ്രഹം വലിയ നഷ്ടം മാത്രമേ ഉണ്ടാക്കൂ എന്ന് അവൻ കണ്ണീരോടെ തിരിച്ചറിഞ്ഞു.',
+      ],
+    ),
+    StoryItem(
+      title: 'കുറുക്കനും കൊക്കും',
+      emoji: '🦊',
+      duration: '3 min read',
+      moral: 'നാം മറ്റുള്ളവരോട് എങ്ങനെ പെരുമാറുന്നുവോ, അതുപോലെ അവർ തിരിച്ചും പെരുമാറും!',
+      summary: 'പരസ്പരം വിരുന്നൊരുക്കിയ തന്ത്രശാലിയായ കുറുക്കനും ബുദ്ധിമാനായ കൊക്കും.',
+      language: 'ml',
+      themeColor: Color(0xFF8E24AA),
+      paragraphs: [
+        'ഒരു കാട്ടിൽ തന്ത്രശാലിയായ ഒരു കുറുക്കനും നല്ലൊരു കൊക്കും തമ്മിൽ ചങ്ങാത്തത്തിലായി. ഒരു ദിവസം കുറുക്കൻ കൊക്കിനെ തന്റെ വീട്ടിലേക്ക് അത്താഴത്തിന് ക്ഷണിച്ചു.',
+        'കുറുക്കൻ പരന്ന ഒരു പാത്രത്തിൽ സൂപ്പ് വിളമ്പി. പരന്ന പാത്രത്തിൽ നിന്നും കൊക്കിന് നീണ്ട കൊക്കുകൊണ്ട് സൂപ്പ് കുടിക്കാൻ കഴിഞ്ഞില്ല. കുറുക്കൻ എല്ലാം ഒറ്റയ്ക്ക് കുടിച്ചുതീർത്തു ചിരിച്ചു.',
+        'കുറച്ചു ദിവസങ്ങൾക്ക് ശേഷം കൊക്ക് കുറുക്കനെ തന്റെ വീട്ടിലേക്ക് വിരുന്നിന് വിളിച്ചു.',
+        'കൊക്ക് രുചികരമായ പായസം ഉണ്ടാക്കി, നീളമുള്ള ഇടുങ്ങിയ കഴുത്തുള്ള ഭരണികളിൽ വിളമ്പി.',
+        'കൊക്ക് തന്റെ നീണ്ട കൊക്ക് ഭരണിക്കുള്ളിലേക്ക് ഇറക്കി സുഖമായി പായസം കുടിച്ചു. എന്നാൽ കുറുക്കന് കുടുങ്ങിയ ഭരണിക്കുള്ളിലേക്ക് വായ കടത്താൻ സാധിച്ചില്ല!',
+        'മറ്റുള്ളവരെ കളിയാക്കിയാൽ അത് തനിക്കും തിരിച്ചുകിട്ടും എന്ന് കുറുക്കൻ മനസ്സിലാക്കി നാണിച്ചു തലതാഴ്ത്തി.',
+      ],
+    ),
+
+    // ==========================================
+    // 🇬🇧 ENGLISH CLASSIC STORIES (en)
+    // ==========================================
     StoryItem(
       title: 'The Tortoise and the Hare',
       emoji: '🐢',
@@ -132,6 +250,15 @@ class StoriesScreen extends StatelessWidget {
     ),
   ];
 
+  List<StoryItem> get _filteredStories {
+    if (_selectedFilter == 'ml') {
+      return _storiesList.where((s) => s.language == 'ml').toList();
+    } else if (_selectedFilter == 'en') {
+      return _storiesList.where((s) => s.language == 'en').toList();
+    }
+    return _storiesList;
+  }
+
   void _openStoryReader(BuildContext context, StoryItem story) {
     final learningProvider = Provider.of<LearningProvider>(context, listen: false);
     learningProvider.completeLesson(AppConstants.moduleStories, coinReward: 10);
@@ -148,6 +275,7 @@ class StoriesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final horizontalPadding = ResponsiveUtil.getHorizontalPadding(context);
     final isTablet = ResponsiveUtil.isTablet(context);
+    final stories = _filteredStories;
 
     return Scaffold(
       appBar: AppBar(
@@ -188,12 +316,12 @@ class StoriesScreen extends StatelessWidget {
               vertical: 12,
             ),
             physics: const BouncingScrollPhysics(),
-            itemCount: _storiesList.length + 1,
+            itemCount: stories.length + 2, // 1 for AI banner, 1 for filter chips
             itemBuilder: (context, index) {
               if (index == 0) {
                 // AI Story Magic Promo Banner
                 return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
+                  margin: const EdgeInsets.only(bottom: 14),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -290,10 +418,30 @@ class StoriesScreen extends StatelessWidget {
                 );
               }
 
-              final story = _storiesList[index - 1];
+              if (index == 1) {
+                // Language Filter Bar (All / Malayalam / English)
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        _buildFilterChip('all', 'All Stories 📚', _storiesList.length),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('ml', '🌴 മലയാളം കഥകൾ', 6, isMalayalam: true),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('en', '🇬🇧 English Stories', 6),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              final story = stories[index - 2];
 
               return Container(
-                margin: const EdgeInsets.only(bottom: 16),
+                margin: const EdgeInsets.only(bottom: 14),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -339,18 +487,49 @@ class StoriesScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 16),
 
-                          // Story Title & Summary
+                          // Story Title, Badges, and Summary
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  story.title,
-                                  style: GoogleFonts.fredoka(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textPrimary,
-                                  ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        story.title,
+                                        style: GoogleFonts.fredoka(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: story.language == 'ml'
+                                            ? const Color(0xFFE8F5E9)
+                                            : const Color(0xFFEDE7F6),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: story.language == 'ml'
+                                              ? const Color(0xFFC8E6C9)
+                                              : const Color(0xFFD1C4E9),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        story.language == 'ml' ? '🌴 മലയാളം' : '🇬🇧 English',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: story.language == 'ml'
+                                              ? const Color(0xFF2E7D32)
+                                              : const Color(0xFF512DA8),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -421,6 +600,27 @@ class StoriesScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildFilterChip(String filterId, String label, int count, {bool isMalayalam = false}) {
+    final isSelected = _selectedFilter == filterId;
+    return ChoiceChip(
+      label: Text('$label ($count)'),
+      selected: isSelected,
+      onSelected: (_) {
+        setState(() {
+          _selectedFilter = filterId;
+        });
+      },
+      selectedColor: isMalayalam ? const Color(0xFFC8E6C9) : AppColors.primaryLight,
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+        color: isSelected
+            ? (isMalayalam ? const Color(0xFF1B5E20) : AppColors.primaryDark)
+            : AppColors.textPrimary,
+      ),
+    );
+  }
 }
 
 /// Full interactive illustrated Story Reader Screen with "Read to Me" voice narration.
@@ -444,7 +644,10 @@ class _StoryReaderScreenState extends State<_StoryReaderScreen> {
       setState(() => _isNarrating = false);
     } else {
       setState(() => _isNarrating = true);
-      final fullStory = '${widget.story.title}. ${widget.story.paragraphs.join(" ")} Moral of the story: ${widget.story.moral}';
+      final fullStory = widget.story.language == 'ml'
+          ? '${widget.story.title}. ${widget.story.paragraphs.join(" ")} ഗുണപാഠം: ${widget.story.moral}'
+          : '${widget.story.title}. ${widget.story.paragraphs.join(" ")} Moral of the story: ${widget.story.moral}';
+
       await tts.speak(fullStory);
       if (mounted) {
         setState(() => _isNarrating = false);

@@ -186,15 +186,11 @@ class ParentDashboardScreen extends StatelessWidget {
                 _buildModuleControlsCard(context, parent, learning, isTablet),
                 const SizedBox(height: 18),
 
-                // 5. App Language & Locale Selection 🌐
-                _buildLanguageSelectorCard(context, parent, isTablet),
-                const SizedBox(height: 18),
-
-                // 6. Sound & Narration Settings
+                // 5. Sound & Narration Settings (Includes English & Malayalam Voice Models)
                 _buildAudioSettingsCard(context, parent, isTablet),
                 const SizedBox(height: 18),
 
-                // 7. Security & Danger Zone
+                // 6. Security & Danger Zone
                 _buildSecurityCard(context, parent, learning, isTablet),
                 const SizedBox(height: 24),
               ],
@@ -615,157 +611,10 @@ class ParentDashboardScreen extends StatelessWidget {
     );
   }
 
-  /// App Language & Locale Selection (English, Hindi, Malayalam)
-  Widget _buildLanguageSelectorCard(BuildContext context, ParentProvider parent, bool isTablet) {
-    final langProvider = Provider.of<LanguageProvider>(context);
-    final currentLangCode = parent.selectedLanguageCode;
-    final tts = Provider.of<TtsService>(context, listen: false);
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: AppColors.softShadow,
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'App Language & Locale 🌐',
-                  style: GoogleFonts.fredoka(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  AppLanguage.fromCode(currentLangCode).nativeLabel,
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFB45309),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Choose the primary language for lessons, interface, and speech narration.',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // 3 Language Cards
-          Row(
-            children: AppLanguage.values.map((lang) {
-              final isSelected = currentLangCode == lang.code;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () async {
-                      parent.setLanguage(lang.code);
-                      await langProvider.setLanguage(lang);
-                      await tts.setLanguage(lang.code);
-
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).clearSnackBars();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Language switched to ${lang.nativeLabel} (${lang.englishLabel}) 🌐'),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primaryLight.withOpacity(0.35) : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
-                          width: isSelected ? 2 : 1,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            lang.flagEmoji,
-                            style: const TextStyle(fontSize: 24),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            lang.nativeLabel,
-                            style: GoogleFonts.fredoka(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            lang.englishLabel,
-                            style: GoogleFonts.nunito(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (isSelected) ...[
-                            const SizedBox(height: 4),
-                            const Icon(
-                              Icons.check_circle_rounded,
-                              size: 14,
-                              color: AppColors.primary,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Audio, Voice & Speech Narration Settings
+  /// Audio, Voice & Speech Narration Settings (Includes Malayalam & English Voice Models)
   Widget _buildAudioSettingsCard(BuildContext context, ParentProvider parent, bool isTablet) {
     final settings = parent.settings;
     final tts = Provider.of<TtsService>(context, listen: false);
-    final activeLanguage = parent.selectedLanguageCode;
-    final personasForLang = VoicePersona.getByLanguage(activeLanguage);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -799,7 +648,7 @@ class ParentDashboardScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${personasForLang.length} Voices',
+                  '${VoicePersona.activePersonas.length} Voices',
                   style: GoogleFonts.nunito(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -811,171 +660,78 @@ class ParentDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Choose your child\'s favorite character voice for ${AppLanguage.fromCode(activeLanguage).englishLabel}. Tap any voice to switch, or tap Preview to listen.',
+            'Choose your child\'s favorite voice companion. Includes dedicated Malayalam voice models and English characters with instant audio preview.',
             style: GoogleFonts.nunito(
               fontSize: 12,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-          // Character Narration Voices List
-          Text(
-            '${AppLanguage.fromCode(activeLanguage).englishLabel} Narration Voices:',
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary,
+          // Section 1: Malayalam Voice Models (Highlighted Header)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFC8E6C9)),
+            ),
+            child: Row(
+              children: [
+                const Text('🌴', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Malayalam Voice Models (മലയാളം ശബ്ദം)',
+                    style: GoogleFonts.fredoka(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF2E7D32),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 10),
 
-          ...personasForLang.map((persona) {
-            final isSelected = settings.selectedVoiceId == persona.id;
-            final accentColor = Color(persona.accentColorHex);
+          ...VoicePersona.malayalamVoices.map(
+            (persona) => _buildVoiceTile(context, parent, tts, persona, settings.selectedVoiceId),
+          ),
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                color: isSelected ? accentColor.withOpacity(0.07) : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: isSelected ? accentColor : const Color(0xFFE2E8F0),
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(18),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(18),
-                  onTap: () {
-                    parent.setVoicePersona(persona.id);
-                    tts.setVoicePersona(persona.id);
-                    ScaffoldMessenger.of(context).clearSnackBars();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Switched voice to ${persona.name} (${persona.role}) 🎙️'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Avatar Emoji Circle
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: accentColor.withOpacity(0.18),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            persona.emoji,
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
+          const SizedBox(height: 16),
 
-                        // Voice Details
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 6,
-                                runSpacing: 2,
-                                children: [
-                                  Text(
-                                    persona.name,
-                                    style: GoogleFonts.fredoka(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: accentColor.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      persona.role,
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: accentColor,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                persona.description,
-                                style: GoogleFonts.nunito(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (isSelected) ...[
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.check_circle_rounded, size: 14, color: accentColor),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Active Companion',
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                        color: accentColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // Preview / Listen Button
-                        IconButton.filledTonal(
-                          onPressed: () {
-                            tts.previewPersona(persona);
-                            ScaffoldMessenger.of(context).clearSnackBars();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Previewing ${persona.name}... 🔊'),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.volume_up_rounded, size: 18),
-                          tooltip: 'Preview ${persona.name}',
-                          style: IconButton.styleFrom(
-                            backgroundColor: accentColor.withOpacity(0.15),
-                            foregroundColor: accentColor,
-                          ),
-                        ),
-                      ],
+          // Section 2: English Companion Voices
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE7F6),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFD1C4E9)),
+            ),
+            child: Row(
+              children: [
+                const Text('🇬🇧', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'English Companion Voices',
+                    style: GoogleFonts.fredoka(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF512DA8),
                     ),
                   ),
                 ),
-              ),
-            );
-          }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          ...VoicePersona.englishVoices.map(
+            (persona) => _buildVoiceTile(context, parent, tts, persona, settings.selectedVoiceId),
+          ),
 
           const SizedBox(height: 14),
 
@@ -1035,6 +791,174 @@ class ParentDashboardScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildVoiceTile(
+    BuildContext context,
+    ParentProvider parent,
+    TtsService tts,
+    VoicePersona persona,
+    String selectedVoiceId,
+  ) {
+    final isSelected = selectedVoiceId == persona.id;
+    final accentColor = Color(persona.accentColorHex);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: isSelected ? accentColor.withOpacity(0.07) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isSelected ? accentColor : const Color(0xFFE2E8F0),
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {
+            parent.setVoicePersona(persona.id);
+            tts.setVoicePersona(persona.id);
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Switched voice to ${persona.name} (${persona.role}) 🎙️'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Avatar Emoji Circle
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    persona.emoji,
+                    style: const TextStyle(fontSize: 22),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Voice Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 6,
+                        runSpacing: 2,
+                        children: [
+                          Text(
+                            persona.name,
+                            style: GoogleFonts.fredoka(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: accentColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              persona.role,
+                              style: GoogleFonts.nunito(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: accentColor,
+                              ),
+                            ),
+                          ),
+                          if (persona.languageCode == 'ml')
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFC8E6C9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'മലയാളം',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF2E7D32),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        persona.description,
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (isSelected) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.check_circle_rounded, size: 14, color: accentColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Active Companion',
+                              style: GoogleFonts.nunito(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: accentColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Preview / Listen Button
+                IconButton.filledTonal(
+                  onPressed: () {
+                    tts.previewPersona(persona);
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Previewing ${persona.name}... 🔊'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.volume_up_rounded, size: 18),
+                  tooltip: 'Preview ${persona.name}',
+                  style: IconButton.styleFrom(
+                    backgroundColor: accentColor.withOpacity(0.15),
+                    foregroundColor: accentColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

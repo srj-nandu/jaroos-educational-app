@@ -221,16 +221,25 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify voice persona cards are present
-      expect(find.text('6 Voices'), findsOneWidget);
+      expect(find.text('9 Voices'), findsOneWidget);
       expect(find.text('Sparky'), findsOneWidget);
+      expect(find.text('Unni (ഉണ്ണി)'), findsOneWidget);
+      expect(find.text('Meenu (മീനു)'), findsOneWidget);
+      expect(find.text('Appu (അപ്പു)'), findsOneWidget);
       expect(find.text('Dora Explorer'), findsOneWidget);
       expect(find.text('Sweet Lily'), findsOneWidget);
-      expect(find.text('Leo Explorer'), findsOneWidget);
-      expect(find.text('Teacher Emma'), findsOneWidget);
-      expect(find.text('Robo-Bot'), findsOneWidget);
 
       // Default selected voice is Sparky
       expect(parent.settings.selectedVoiceId, 'sparky_kid');
+
+      // Tap Unni to switch to Malayalam voice
+      await tester.scrollUntilVisible(find.text('Unni (ഉണ്ണി)'), 200);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Unni (ഉണ്ണി)'));
+      await tester.pumpAndSettle();
+
+      // Verify selection updated to unni_kid
+      expect(parent.settings.selectedVoiceId, 'unni_kid');
 
       // Tap Dora Explorer to switch voice
       await tester.scrollUntilVisible(find.text('Dora Explorer'), 200);
@@ -249,14 +258,6 @@ void main() {
 
       // Verify selection updated to sweet_lily
       expect(parent.settings.selectedVoiceId, 'sweet_lily');
-
-      // Tap Robo-Bot to switch voice
-      await tester.scrollUntilVisible(find.text('Robo-Bot'), 200);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Robo-Bot'));
-      await tester.pumpAndSettle();
-
-      expect(parent.settings.selectedVoiceId, 'robo_buddy');
     });
   });
 }

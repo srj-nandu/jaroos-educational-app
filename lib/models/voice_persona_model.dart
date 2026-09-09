@@ -247,6 +247,29 @@ class VoicePersona {
     voiceKeywords: ['ml', 'malayalam', 'young', 'natural'],
   );
 
+  /// Curated list of English companion voices
+  static const List<VoicePersona> englishVoices = [
+    sparky,
+    dora,
+    lily,
+    leo,
+    emma,
+    robo,
+  ];
+
+  /// Curated list of Malayalam companion voice models
+  static const List<VoicePersona> malayalamVoices = [
+    unni,
+    meenu,
+    appu,
+  ];
+
+  /// All available active voice personas for the app (6 English + 3 Malayalam)
+  static const List<VoicePersona> activePersonas = [
+    ...englishVoices,
+    ...malayalamVoices,
+  ];
+
   /// All available curated voice personas
   static const List<VoicePersona> all = [
     sparky,

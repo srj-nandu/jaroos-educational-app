@@ -421,7 +421,7 @@ class ModularTtsService implements TtsService {
   String get currentLanguageCode => _globalLanguageCode;
 
   @override
-  List<VoicePersona> get availablePersonas => VoicePersona.getByLanguage(_globalLanguageCode);
+  List<VoicePersona> get availablePersonas => VoicePersona.activePersonas;
 
   @override
   Future<void> setLanguage(String langCode) async {
@@ -441,6 +441,7 @@ class ModularTtsService implements TtsService {
   Future<void> setVoicePersona(String personaId) async {
     _activePersonaId = personaId;
     final persona = VoicePersona.getById(personaId);
+    _globalLanguageCode = persona.languageCode;
     await _applyVoicePersona(persona);
   }
 
@@ -490,13 +491,24 @@ class ModularTtsService implements TtsService {
       try {
         await _flutterTts!.stop();
 
-        final persona = VoicePersona.getById(_activePersonaId);
+        final currentPersona = VoicePersona.getById(_activePersonaId);
+        final isMalayalamText = RegExp(r'[\u0D00-\u0D7F]').hasMatch(clean);
+        final persona = isMalayalamText && currentPersona.languageCode != 'ml'
+            ? VoicePersona.meenu
+            : currentPersona;
+
+        if (isMalayalamText && currentPersona.languageCode != 'ml') {
+          try {
+            await _flutterTts!.setLanguage('ml-IN');
+            await _selectVoiceForPersona(persona);
+          } catch (_) {}
+        }
 
         // Dynamically adjust pitch for excitement vs calm story narrative
         if (humanized.contains('!') || humanized.contains('Yay') || humanized.contains('Whoa') || humanized.contains('Wow')) {
           await _flutterTts!.setPitch(persona.excitedPitch);
           await _flutterTts!.setSpeechRate(((persona.baseRate + 0.01) * _speechRateMultiplier).clamp(0.2, 1.0));
-        } else if (clean.length > 150 || clean.contains('Once upon a time') || clean.contains('Bedtime')) {
+        } else if (clean.length > 150 || clean.contains('Once upon a time') || clean.contains('Bedtime') || clean.contains('കഥ')) {
           await _flutterTts!.setPitch(persona.calmPitch);
           await _flutterTts!.setSpeechRate(((persona.baseRate - 0.04) * _speechRateMultiplier).clamp(0.2, 1.0));
         } else {
@@ -505,6 +517,13 @@ class ModularTtsService implements TtsService {
         }
 
         await _flutterTts!.speak(humanized);
+
+        if (isMalayalamText && currentPersona.languageCode != 'ml') {
+          try {
+            await _applyVoicePersona(currentPersona);
+          } catch (_) {}
+        }
+
         _isSpeaking = false;
         _currentSpeech.value = null;
         return;

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../providers/language_provider.dart';
 import '../../home/screens/home_screen.dart';
 import '../../learning_path/screens/learning_path_screen.dart';
 import '../../profile/screens/profile_screen.dart';
@@ -55,8 +53,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = Provider.of<LanguageProvider>(context);
-
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -82,11 +78,11 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home_rounded, lang.tr('nav_home')),
-                _buildNavItem(1, Icons.menu_book_rounded, lang.tr('nav_courses')),
-                _buildNavItem(2, Icons.psychology_rounded, lang.tr('nav_practice')),
-                _buildNavItem(3, Icons.bar_chart_rounded, lang.tr('nav_progress')),
-                _buildNavItem(4, Icons.person_rounded, lang.tr('nav_profile')),
+                _buildNavItem(0, Icons.home_rounded, 'Home'),
+                _buildNavItem(1, Icons.menu_book_rounded, 'Courses'),
+                _buildNavItem(2, Icons.psychology_rounded, 'Practice'),
+                _buildNavItem(3, Icons.bar_chart_rounded, 'Progress'),
+                _buildNavItem(4, Icons.person_rounded, 'Profile'),
               ],
             ),
           ),
