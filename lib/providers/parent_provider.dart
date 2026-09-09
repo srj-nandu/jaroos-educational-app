@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../core/services/tts_service.dart';
 import '../models/parent_settings_model.dart';
+import '../models/voice_persona_model.dart';
 
 /// Centralized state management for parental controls, screen time monitoring,
 /// PIN verification, and child safety gates in JAROOS.
@@ -18,6 +19,7 @@ class ParentProvider with ChangeNotifier {
 
   ParentSettingsModel get settings => _settings;
   String get mathQuestion => _mathQuestion;
+  String get selectedLanguageCode => _settings.selectedLanguageCode;
 
   /// Check if a given 4-digit PIN matches
   bool verifyPin(String pin) {
@@ -103,6 +105,18 @@ class ParentProvider with ChangeNotifier {
   void setVoicePersona(String voiceId) {
     _settings = _settings.copyWith(selectedVoiceId: voiceId);
     ModularTtsService.setActivePersona(voiceId);
+    notifyListeners();
+  }
+
+  /// Switch the active app language (en, hi, ml) and update active voice to the default for that language
+  void setLanguage(String langCode) {
+    final defaultVoice = VoicePersona.getDefaultForLanguage(langCode);
+    _settings = _settings.copyWith(
+      selectedLanguageCode: langCode,
+      selectedVoiceId: defaultVoice.id,
+    );
+    ModularTtsService.setGlobalLanguageCode(langCode);
+    ModularTtsService.setActivePersona(defaultVoice.id);
     notifyListeners();
   }
 

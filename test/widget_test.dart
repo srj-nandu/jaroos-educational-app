@@ -11,7 +11,9 @@ import 'package:jaroos/features/authentication/screens/register_screen.dart';
 import 'package:jaroos/features/home/screens/home_screen.dart';
 import 'package:jaroos/features/alphabet/screens/alphabet_screen.dart';
 import 'package:jaroos/providers/auth_provider.dart';
+import 'package:jaroos/providers/language_provider.dart';
 import 'package:jaroos/providers/learning_provider.dart';
+import 'package:jaroos/providers/parent_provider.dart';
 import 'package:jaroos/services/storage_service.dart';
 
 Widget createTestApp() {
@@ -19,8 +21,10 @@ Widget createTestApp() {
     providers: [
       Provider<StorageService>(create: (_) => StorageService()),
       Provider<TtsService>(create: (_) => ModularTtsService(simulateDelay: false)),
+      ChangeNotifierProvider<LanguageProvider>(create: (_) => LanguageProvider()),
       ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
       ChangeNotifierProvider<LearningProvider>(create: (_) => LearningProvider()),
+      ChangeNotifierProvider<ParentProvider>(create: (_) => ParentProvider()),
     ],
     child: const JaroosApp(),
   );

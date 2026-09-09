@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/localization/app_language.dart';
 import '../../../core/services/tts_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/responsive_util.dart';
 import '../../../models/voice_persona_model.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/language_provider.dart';
 import '../../../providers/learning_provider.dart';
 import '../../../providers/parent_provider.dart';
 
@@ -184,11 +186,15 @@ class ParentDashboardScreen extends StatelessWidget {
                 _buildModuleControlsCard(context, parent, learning, isTablet),
                 const SizedBox(height: 18),
 
-                // 5. Sound & Narration Settings
+                // 5. App Language & Locale Selection 🌐
+                _buildLanguageSelectorCard(context, parent, isTablet),
+                const SizedBox(height: 18),
+
+                // 6. Sound & Narration Settings
                 _buildAudioSettingsCard(context, parent, isTablet),
                 const SizedBox(height: 18),
 
-                // 6. Security & Danger Zone
+                // 7. Security & Danger Zone
                 _buildSecurityCard(context, parent, learning, isTablet),
                 const SizedBox(height: 24),
               ],
@@ -609,10 +615,157 @@ class ParentDashboardScreen extends StatelessWidget {
     );
   }
 
+  /// App Language & Locale Selection (English, Hindi, Malayalam)
+  Widget _buildLanguageSelectorCard(BuildContext context, ParentProvider parent, bool isTablet) {
+    final langProvider = Provider.of<LanguageProvider>(context);
+    final currentLangCode = parent.selectedLanguageCode;
+    final tts = Provider.of<TtsService>(context, listen: false);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppColors.softShadow,
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'App Language & Locale 🌐',
+                  style: GoogleFonts.fredoka(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  AppLanguage.fromCode(currentLangCode).nativeLabel,
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFB45309),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Choose the primary language for lessons, interface, and speech narration.',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // 3 Language Cards
+          Row(
+            children: AppLanguage.values.map((lang) {
+              final isSelected = currentLangCode == lang.code;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () async {
+                      parent.setLanguage(lang.code);
+                      await langProvider.setLanguage(lang);
+                      await tts.setLanguage(lang.code);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).clearSnackBars();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Language switched to ${lang.nativeLabel} (${lang.englishLabel}) 🌐'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.primaryLight.withOpacity(0.35) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            lang.flagEmoji,
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            lang.nativeLabel,
+                            style: GoogleFonts.fredoka(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            lang.englishLabel,
+                            style: GoogleFonts.nunito(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (isSelected) ...[
+                            const SizedBox(height: 4),
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 14,
+                              color: AppColors.primary,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Audio, Voice & Speech Narration Settings
   Widget _buildAudioSettingsCard(BuildContext context, ParentProvider parent, bool isTablet) {
     final settings = parent.settings;
     final tts = Provider.of<TtsService>(context, listen: false);
+    final activeLanguage = parent.selectedLanguageCode;
+    final personasForLang = VoicePersona.getByLanguage(activeLanguage);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -646,7 +799,7 @@ class ParentDashboardScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${VoicePersona.all.length} Voices',
+                  '${personasForLang.length} Voices',
                   style: GoogleFonts.nunito(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -658,7 +811,7 @@ class ParentDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Choose your child\'s favorite character voice. Tap any voice to switch, or tap Preview to listen.',
+            'Choose your child\'s favorite character voice for ${AppLanguage.fromCode(activeLanguage).englishLabel}. Tap any voice to switch, or tap Preview to listen.',
             style: GoogleFonts.nunito(
               fontSize: 12,
               color: AppColors.textSecondary,
@@ -669,7 +822,7 @@ class ParentDashboardScreen extends StatelessWidget {
 
           // Character Narration Voices List
           Text(
-            'Character Narration Voices:',
+            '${AppLanguage.fromCode(activeLanguage).englishLabel} Narration Voices:',
             style: GoogleFonts.nunito(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -678,7 +831,7 @@ class ParentDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          ...VoicePersona.all.map((persona) {
+          ...personasForLang.map((persona) {
             final isSelected = settings.selectedVoiceId == persona.id;
             final accentColor = Color(persona.accentColorHex);
 

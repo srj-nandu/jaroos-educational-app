@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:jaroos/core/services/tts_service.dart';
 import 'package:jaroos/providers/auth_provider.dart';
+import 'package:jaroos/providers/language_provider.dart';
 import 'package:jaroos/providers/learning_provider.dart';
 import 'package:jaroos/providers/parent_provider.dart';
 import 'package:jaroos/features/parent/screens/parent_dashboard_screen.dart';
@@ -13,10 +14,12 @@ Widget createTestParentApp({
   ParentProvider? parent,
   LearningProvider? learning,
   AuthProvider? auth,
+  LanguageProvider? language,
 }) {
   return MultiProvider(
     providers: [
       Provider<TtsService>(create: (_) => ModularTtsService(simulateDelay: false)),
+      ChangeNotifierProvider<LanguageProvider>(create: (_) => language ?? LanguageProvider()),
       ChangeNotifierProvider<AuthProvider>(create: (_) => auth ?? AuthProvider()),
       ChangeNotifierProvider<LearningProvider>(create: (_) => learning ?? LearningProvider()),
       ChangeNotifierProvider<ParentProvider>(create: (_) => parent ?? ParentProvider()),
@@ -92,6 +95,27 @@ void main() {
 
       parent.setVoicePersona('robo_buddy');
       expect(parent.settings.selectedVoiceId, 'robo_buddy');
+    });
+
+    test('Switches app language and assigns default voice persona per language', () {
+      final parent = ParentProvider();
+      expect(parent.selectedLanguageCode, 'en');
+      expect(parent.settings.selectedVoiceId, 'sparky_kid');
+
+      // Switch to Hindi
+      parent.setLanguage('hi');
+      expect(parent.selectedLanguageCode, 'hi');
+      expect(parent.settings.selectedVoiceId, 'aarav_kid');
+
+      // Switch to Malayalam
+      parent.setLanguage('ml');
+      expect(parent.selectedLanguageCode, 'ml');
+      expect(parent.settings.selectedVoiceId, 'unni_kid');
+
+      // Switch back to English
+      parent.setLanguage('en');
+      expect(parent.selectedLanguageCode, 'en');
+      expect(parent.settings.selectedVoiceId, 'sparky_kid');
     });
   });
 

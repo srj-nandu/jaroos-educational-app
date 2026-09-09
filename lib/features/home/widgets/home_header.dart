@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../providers/language_provider.dart';
 import '../../parent/widgets/parent_gate_dialog.dart';
 
 /// Top header banner on the Home Dashboard.
@@ -22,6 +24,8 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Provider.of<LanguageProvider>(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -49,7 +53,7 @@ class HomeHeader extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Hi, $childName! 👋',
+                    '${lang.tr('greeting_hello')}, $childName! 👋',
                     style: AppTextStyles.headlineSmall.copyWith(
                       fontSize: 20,
                       color: AppColors.textPrimary,
@@ -58,7 +62,7 @@ class HomeHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Ready to play & learn?',
+                  lang.tr('home_subtitle'),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w600,

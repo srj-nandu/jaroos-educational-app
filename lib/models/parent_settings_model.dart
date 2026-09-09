@@ -6,7 +6,8 @@ class ParentSettingsModel {
   final int dailyTimeLimitMinutes; // 15, 30, 45, 60, 0 for unlimited
   final int todayScreenTimeMinutes;
   final double ttsSpeechRate; // 0.8, 1.0, 1.2
-  final String selectedVoiceId; // 'sparky_kid', 'sweet_lily', 'cheerful_leo', 'teacher_emma', 'robo_buddy'
+  final String selectedVoiceId; // 'sparky_kid', 'dora_explorer', 'aarav_kid', 'unni_kid', etc.
+  final String selectedLanguageCode; // 'en', 'hi', 'ml'
   final bool soundEffectsEnabled;
   final bool backgroundMusicEnabled;
   final List<String> disabledModuleIds;
@@ -20,6 +21,7 @@ class ParentSettingsModel {
     this.todayScreenTimeMinutes = 18,
     this.ttsSpeechRate = 1.0,
     this.selectedVoiceId = 'sparky_kid',
+    this.selectedLanguageCode = 'en',
     this.soundEffectsEnabled = true,
     this.backgroundMusicEnabled = true,
     this.disabledModuleIds = const [],
@@ -48,6 +50,7 @@ class ParentSettingsModel {
     int? todayScreenTimeMinutes,
     double? ttsSpeechRate,
     String? selectedVoiceId,
+    String? selectedLanguageCode,
     bool? soundEffectsEnabled,
     bool? backgroundMusicEnabled,
     List<String>? disabledModuleIds,
@@ -61,6 +64,7 @@ class ParentSettingsModel {
       todayScreenTimeMinutes: todayScreenTimeMinutes ?? this.todayScreenTimeMinutes,
       ttsSpeechRate: ttsSpeechRate ?? this.ttsSpeechRate,
       selectedVoiceId: selectedVoiceId ?? this.selectedVoiceId,
+      selectedLanguageCode: selectedLanguageCode ?? this.selectedLanguageCode,
       soundEffectsEnabled: soundEffectsEnabled ?? this.soundEffectsEnabled,
       backgroundMusicEnabled: backgroundMusicEnabled ?? this.backgroundMusicEnabled,
       disabledModuleIds: disabledModuleIds ?? this.disabledModuleIds,
