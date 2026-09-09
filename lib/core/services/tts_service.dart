@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../../models/voice_persona_model.dart';
 
 /// Abstract Text-to-Speech contract for JAROOS.
 /// Provides a unified API for pronouncing words, letters, numbers, colors,
@@ -10,6 +11,10 @@ abstract class TtsService {
   Future<void> speak(String text);
   Future<void> stop();
   Future<void> setSpeechRate(double rate);
+  Future<void> setVoicePersona(String personaId);
+  String get currentVoicePersona;
+  List<VoicePersona> get availablePersonas;
+  Future<void> previewPersona(VoicePersona persona);
   bool get isSpeaking;
   ValueNotifier<String?> get currentSpeech;
 }
@@ -23,6 +28,19 @@ class ModularTtsService implements TtsService {
   bool _isSpeaking = false;
   final ValueNotifier<String?> _currentSpeech = ValueNotifier<String?>(null);
   bool _isInitialized = false;
+  List<dynamic>? _cachedDeviceVoices;
+
+  // Shared active persona and speed multiplier across instances
+  static String _activePersonaId = 'sparky_kid';
+  static double _speechRateMultiplier = 1.0;
+
+  static void setActivePersona(String personaId) {
+    _activePersonaId = personaId;
+  }
+
+  static void setGlobalSpeechRateMultiplier(double multiplier) {
+    _speechRateMultiplier = multiplier;
+  }
 
   ModularTtsService({this.simulateDelay = true}) {
     // Only initialize native FlutterTts when not in headless test mode
@@ -35,14 +53,14 @@ class ModularTtsService implements TtsService {
     try {
       _flutterTts = FlutterTts();
 
-      // Configure child-friendly, energetic bubbly voice settings
+      final persona = VoicePersona.getById(_activePersonaId);
       await _flutterTts!.setLanguage("en-US");
-      await _flutterTts!.setSpeechRate(0.48); // Bouncy, animated child pace
+      await _flutterTts!.setSpeechRate((persona.baseRate * _speechRateMultiplier).clamp(0.2, 1.0));
       await _flutterTts!.setVolume(1.0);
-      await _flutterTts!.setPitch(1.34); // Sweet, enthusiastic child-like pitch
+      await _flutterTts!.setPitch(persona.basePitch);
 
-      // Attempt to pick a natural youthful/child-like voice
-      await _selectHumanizedVoice();
+      // Select system voice matching current persona
+      await _selectVoiceForPersona(persona);
 
       // Await completion so buttons reflect active speaking state
       try {
@@ -70,20 +88,22 @@ class ModularTtsService implements TtsService {
       });
 
       _isInitialized = true;
-      debugPrint('[JAROOS TTS] Native FlutterTts child voice engine initialized successfully!');
+      debugPrint('[JAROOS TTS] Native child voice engine initialized successfully with persona: ${persona.name}!');
     } catch (e) {
       debugPrint('[JAROOS TTS] Native FlutterTts initialization note: $e');
       _isInitialized = false;
     }
   }
 
-  /// Automatically selects a youthful, female, or child-friendly neural voice
-  Future<void> _selectHumanizedVoice() async {
+  /// Automatically selects the best device voice matching the given persona
+  Future<void> _selectVoiceForPersona(VoicePersona persona) async {
+    if (_flutterTts == null) return;
     try {
-      final voices = await _flutterTts!.getVoices;
+      _cachedDeviceVoices ??= await _flutterTts!.getVoices;
+      final voices = _cachedDeviceVoices;
       if (voices is List && voices.isNotEmpty) {
         dynamic bestVoice;
-        int bestScore = -1;
+        int bestScore = -100;
 
         for (final voice in voices) {
           if (voice is Map) {
@@ -92,27 +112,36 @@ class ModularTtsService implements TtsService {
 
             if (locale.contains('en-us') || locale.contains('en_us') || locale.contains('en-gb') || locale.contains('en')) {
               int score = 0;
-              // Strongly prioritize child/youthful/cheerful voice markers
-              if (name.contains('child') || name.contains('kid') || name.contains('young') || name.contains('girl')) {
-                score += 100;
+
+              for (final kw in persona.voiceKeywords) {
+                if (name.contains(kw.toLowerCase())) {
+                  score += 45;
+                }
               }
-              // Google TTS energetic female/child neural voice
-              if (name.contains('sfg') || name.contains('en-us-x-sfg-network')) {
-                score += 85;
-              }
-              // Friendly, cheerful female neural voices
-              if (name.contains('jenny') || name.contains('eva') || name.contains('zira') || name.contains('samantha')) {
-                score += 65;
-              }
-              if (name.contains('neural') || name.contains('network') || name.contains('natural')) {
-                score += 40;
-              }
-              if (name.contains('female') || name.contains('woman')) {
-                score += 25;
-              }
-              // Penalize deep adult male voices for a kids app
-              if (name.contains('david') || name.contains('mark') || name.contains('male')) {
-                score -= 60;
+
+              if (persona.id == 'sparky_kid') {
+                if (name.contains('child') || name.contains('kid') || name.contains('young') || name.contains('girl')) {
+                  score += 60;
+                }
+                if (name.contains('sfg')) score += 50;
+                if (name.contains('david') || name.contains('male')) score -= 80;
+              } else if (persona.id == 'sweet_lily') {
+                if (name.contains('female') || name.contains('woman') || name.contains('girl') || name.contains('eva') || name.contains('jenny')) {
+                  score += 60;
+                }
+                if (name.contains('male') || name.contains('david')) score -= 80;
+              } else if (persona.id == 'cheerful_leo') {
+                if (name.contains('young') || name.contains('boy') || name.contains('natural')) {
+                  score += 50;
+                }
+              } else if (persona.id == 'teacher_emma') {
+                if (name.contains('female') || name.contains('natural') || name.contains('neural')) {
+                  score += 50;
+                }
+              } else if (persona.id == 'robo_buddy') {
+                if (name.contains('network') || name.contains('neural') || name.contains('en-us')) {
+                  score += 30;
+                }
               }
 
               if (score > bestScore) {
@@ -128,11 +157,22 @@ class ModularTtsService implements TtsService {
             bestVoice.map((k, v) => MapEntry(k.toString(), v.toString())),
           );
           await _flutterTts!.setVoice(voiceMap);
-          debugPrint('[JAROOS TTS] Child-friendly voice selected: ${voiceMap['name']} (score: $bestScore)');
+          debugPrint('[JAROOS TTS] Voice for persona "${persona.name}" selected: ${voiceMap['name']} (score: $bestScore)');
         }
       }
     } catch (e) {
       debugPrint('[JAROOS TTS Voice Selection Note] $e');
+    }
+  }
+
+  Future<void> _applyVoicePersona(VoicePersona persona) async {
+    if (_flutterTts == null || !_isInitialized) return;
+    try {
+      await _selectVoiceForPersona(persona);
+      await _flutterTts!.setPitch(persona.basePitch);
+      await _flutterTts!.setSpeechRate((persona.baseRate * _speechRateMultiplier).clamp(0.2, 1.0));
+    } catch (e) {
+      debugPrint('[JAROOS TTS Apply Persona Note] $e');
     }
   }
 
@@ -228,10 +268,40 @@ class ModularTtsService implements TtsService {
   ValueNotifier<String?> get currentSpeech => _currentSpeech;
 
   @override
+  String get currentVoicePersona => _activePersonaId;
+
+  @override
+  List<VoicePersona> get availablePersonas => VoicePersona.all;
+
+  @override
+  Future<void> setVoicePersona(String personaId) async {
+    _activePersonaId = personaId;
+    final persona = VoicePersona.getById(personaId);
+    await _applyVoicePersona(persona);
+  }
+
+  @override
+  Future<void> previewPersona(VoicePersona persona) async {
+    await stop();
+    final savedPersonaId = _activePersonaId;
+    _activePersonaId = persona.id;
+    if (_flutterTts != null && _isInitialized) {
+      await _applyVoicePersona(persona);
+    }
+    await speak(persona.samplePhrase);
+    _activePersonaId = savedPersonaId;
+    if (_flutterTts != null && _isInitialized) {
+      await _applyVoicePersona(VoicePersona.getById(savedPersonaId));
+    }
+  }
+
+  @override
   Future<void> setSpeechRate(double rate) async {
+    _speechRateMultiplier = rate;
+    final persona = VoicePersona.getById(_activePersonaId);
     if (_flutterTts != null && _isInitialized) {
       try {
-        await _flutterTts!.setSpeechRate(rate);
+        await _flutterTts!.setSpeechRate((persona.baseRate * _speechRateMultiplier).clamp(0.2, 1.0));
       } catch (_) {}
     }
   }
@@ -245,7 +315,7 @@ class ModularTtsService implements TtsService {
 
     _isSpeaking = true;
     _currentSpeech.value = clean;
-    debugPrint('[JAROOS Child TTS] Speaking: "$humanized"');
+    debugPrint('[JAROOS TTS ($_activePersonaId)] Speaking: "$humanized"');
 
     // Trigger gentle child tactile feedback on speech burst
     try {
@@ -256,16 +326,18 @@ class ModularTtsService implements TtsService {
       try {
         await _flutterTts!.stop();
 
+        final persona = VoicePersona.getById(_activePersonaId);
+
         // Dynamically adjust pitch for excitement vs calm story narrative
         if (humanized.contains('!') || humanized.contains('Yay') || humanized.contains('Whoa') || humanized.contains('Wow')) {
-          await _flutterTts!.setPitch(1.38); // Extra bouncy cartoon child excitement
-          await _flutterTts!.setSpeechRate(0.49);
+          await _flutterTts!.setPitch(persona.excitedPitch);
+          await _flutterTts!.setSpeechRate(((persona.baseRate + 0.01) * _speechRateMultiplier).clamp(0.2, 1.0));
         } else if (clean.length > 150 || clean.contains('Once upon a time') || clean.contains('Bedtime')) {
-          await _flutterTts!.setPitch(1.24); // Calmer, sweet bedtime storytelling
-          await _flutterTts!.setSpeechRate(0.43);
+          await _flutterTts!.setPitch(persona.calmPitch);
+          await _flutterTts!.setSpeechRate(((persona.baseRate - 0.04) * _speechRateMultiplier).clamp(0.2, 1.0));
         } else {
-          await _flutterTts!.setPitch(1.34); // Standard sweet, animated child companion
-          await _flutterTts!.setSpeechRate(0.48);
+          await _flutterTts!.setPitch(persona.basePitch);
+          await _flutterTts!.setSpeechRate((persona.baseRate * _speechRateMultiplier).clamp(0.2, 1.0));
         }
 
         await _flutterTts!.speak(humanized);

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../core/services/tts_service.dart';
 import '../models/parent_settings_model.dart';
 
 /// Centralized state management for parental controls, screen time monitoring,
@@ -94,6 +95,14 @@ class ParentProvider with ChangeNotifier {
   /// Configure TTS voice speed (0.8x Slow, 1.0x Normal, 1.2x Fast)
   void setTtsSpeechRate(double rate) {
     _settings = _settings.copyWith(ttsSpeechRate: rate);
+    ModularTtsService.setGlobalSpeechRateMultiplier(rate);
+    notifyListeners();
+  }
+
+  /// Switch the active character narration voice persona
+  void setVoicePersona(String voiceId) {
+    _settings = _settings.copyWith(selectedVoiceId: voiceId);
+    ModularTtsService.setActivePersona(voiceId);
     notifyListeners();
   }
 

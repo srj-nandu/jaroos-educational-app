@@ -83,6 +83,16 @@ void main() {
       expect(learning.totalLessonsCompleted, 0);
       expect(learning.totalQuizzesAttempted, 0);
     });
+    test('Switches voice persona and updates parent settings', () {
+      final parent = ParentProvider();
+      expect(parent.settings.selectedVoiceId, 'sparky_kid');
+
+      parent.setVoicePersona('sweet_lily');
+      expect(parent.settings.selectedVoiceId, 'sweet_lily');
+
+      parent.setVoicePersona('robo_buddy');
+      expect(parent.settings.selectedVoiceId, 'robo_buddy');
+    });
   });
 
   group('ParentGateDialog Widget Tests', () {
@@ -169,6 +179,50 @@ void main() {
       await tester.tap(find.text('45 Min'));
       await tester.pumpAndSettle();
       expect(parent.settings.dailyTimeLimitMinutes, 45);
+    });
+
+    testWidgets('Displays all voice personas, allows switching between voices and previewing', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      final parent = ParentProvider();
+      final learning = LearningProvider();
+
+      await tester.pumpWidget(createTestParentApp(
+        home: const ParentDashboardScreen(),
+        parent: parent,
+        learning: learning,
+      ));
+      await tester.pumpAndSettle();
+
+      // Verify voice persona cards are present
+      expect(find.text('5 Voices'), findsOneWidget);
+      expect(find.text('Sparky'), findsOneWidget);
+      expect(find.text('Sweet Lily'), findsOneWidget);
+      expect(find.text('Leo Explorer'), findsOneWidget);
+      expect(find.text('Teacher Emma'), findsOneWidget);
+      expect(find.text('Robo-Bot'), findsOneWidget);
+
+      // Default selected voice is Sparky
+      expect(parent.settings.selectedVoiceId, 'sparky_kid');
+
+      // Tap Sweet Lily to switch voice
+      await tester.scrollUntilVisible(find.text('Sweet Lily'), 200);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sweet Lily'));
+      await tester.pumpAndSettle();
+
+      // Verify selection updated to sweet_lily
+      expect(parent.settings.selectedVoiceId, 'sweet_lily');
+
+      // Tap Robo-Bot to switch voice
+      await tester.scrollUntilVisible(find.text('Robo-Bot'), 200);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Robo-Bot'));
+      await tester.pumpAndSettle();
+
+      expect(parent.settings.selectedVoiceId, 'robo_buddy');
     });
   });
 }
