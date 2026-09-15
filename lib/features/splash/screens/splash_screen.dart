@@ -46,10 +46,10 @@ class _MistParticle {
 
 /// Dynamic, Living Jungle Adventure Animated Splash Screen for JAROOS.
 /// Features:
-/// - Custom vibrant 3D Jungle Lion & Secret Waterfall artwork
-/// - Layered 3D animated "JAROOS" golden crown title & "Learn • Play • Grow" jungle sign
+/// - Custom 3D Disney/Pixar-style Jungle Lion & Secret Waterfall artwork with "JAROOS - Learn • Play • Grow"
 /// - Ambient breathing & gentle parallax camera zoom
-/// - Animated fluttering tropical butterflies traversing the jungle
+/// - Animated crown shimmer & glistening light sparkles
+/// - Animated fluttering tropical butterflies traversing the waterfall & flora
 /// - Cascading waterfall mist & shimmering water spray bubbles
 /// - Dappled sunbeams swaying through the rainforest canopy
 /// - Floating fireflies and magical ambient stars
@@ -337,7 +337,39 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ),
 
             // ================================================================
-            // LAYER 5: Floating Glowing Fireflies & Magic Sparkles
+            // LAYER 5: Animated Golden Crown Shimmer & Sparkles over JAROOS Logo
+            // ================================================================
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 6,
+              left: 0,
+              right: 0,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: AnimatedBuilder(
+                  animation: _ambientController,
+                  builder: (context, child) {
+                    final pulse = 0.85 + math.sin(_ambientController.value * 2 * math.pi) * 0.15;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Transform.scale(
+                          scale: pulse,
+                          child: const Text('✨', style: TextStyle(fontSize: 20)),
+                        ),
+                        const SizedBox(width: 80),
+                        Transform.scale(
+                          scale: 1.1 - (pulse * 0.2),
+                          child: const Text('🌟', style: TextStyle(fontSize: 22)),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            // ================================================================
+            // LAYER 6: Floating Glowing Fireflies & Magic Sparkles
             // ================================================================
             AnimatedBuilder(
               animation: _ambientController,
@@ -346,14 +378,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   children: [
                     _buildFloatingGlow(
                       left: size.width * 0.08,
-                      top: size.height * 0.36,
+                      top: size.height * 0.38,
                       icon: '🌟',
                       size: 22,
                       offsetFactor: 0.2,
                     ),
                     _buildFloatingGlow(
                       right: size.width * 0.12,
-                      top: size.height * 0.24,
+                      top: size.height * 0.30,
                       icon: '✨',
                       size: 24,
                       offsetFactor: 0.7,
@@ -375,31 +407,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   ],
                 );
               },
-            ),
-
-            // ================================================================
-            // LAYER 6: Top 3D Animated "JAROOS" Golden Crown & Wooden Sign
-            // ================================================================
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              left: 18,
-              right: 18,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: AnimatedBuilder(
-                    animation: _ambientController,
-                    builder: (context, child) {
-                      final sway = math.sin(_ambientController.value * 2 * math.pi) * 3.0;
-                      return Transform.translate(
-                        offset: Offset(0, sway),
-                        child: _buildJaroosHeaderBadge(),
-                      );
-                    },
-                  ),
-                ),
-              ),
             ),
 
             // ================================================================
@@ -432,146 +439,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           ],
         ),
       ),
-    );
-  }
-
-  /// Top 3D Animated JAROOS Wooden Board & Golden Crown Banner
-  Widget _buildJaroosHeaderBadge() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Golden Crown
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFFD54F).withValues(alpha: 0.5),
-                blurRadius: 18,
-                spreadRadius: 4,
-              ),
-            ],
-          ),
-          child: const Text('👑', style: TextStyle(fontSize: 34)),
-        ),
-
-        const SizedBox(height: 2),
-
-        // 3D Bubbly JAROOS Game Logo
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Outermost Dark Shadow for 3D Pop
-              Text(
-                'JAROOS',
-                style: GoogleFonts.bubblegumSans(
-                  fontSize: 50,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 3.5,
-                  color: const Color(0xFF3E1802), // Deep wood brown
-                ),
-              ),
-
-              // Middle Golden Outline
-              Text(
-                'JAROOS',
-                style: GoogleFonts.bubblegumSans(
-                  fontSize: 48,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 3.5,
-                  foreground: Paint()
-                    ..style = PaintingStyle.stroke
-                    ..strokeWidth = 6
-                    ..color = const Color(0xFFFFB300), // Rich gold
-                ),
-              ),
-
-              // Foreground Vibrant Gradient Fill
-              ShaderMask(
-                shaderCallback: (bounds) {
-                  return const LinearGradient(
-                    colors: [
-                      Color(0xFFFFF9C4), // Light cream yellow
-                      Color(0xFFFFEE58), // Vibrant yellow
-                      Color(0xFFFF9800), // Sunburst orange
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ).createShader(bounds);
-                },
-                child: Text(
-                  'JAROOS',
-                  style: GoogleFonts.bubblegumSans(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 3.5,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 4),
-
-        // Rustic Wooden Jungle Tagline Ribbon
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF6D4C41), // Rich wood brown
-                  Color(0xFF8D6E63),
-                  Color(0xFF5D4037),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(
-                color: const Color(0xFFFFD54F),
-                width: 2.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  offset: const Offset(0, 5),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('🌿 ', style: TextStyle(fontSize: 15)),
-                Text(
-                  'Learn • Play • Grow',
-                  style: GoogleFonts.fredoka(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFFFF8E1),
-                    letterSpacing: 0.8,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.7),
-                        offset: const Offset(0, 1.5),
-                        blurRadius: 3,
-                      ),
-                    ],
-                  ),
-                ),
-                const Text(' 🌿', style: TextStyle(fontSize: 15)),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -612,24 +479,24 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Adventure Tip Caption
+              // Adventure Tip Caption & Tagline
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('🦁 ', style: TextStyle(fontSize: 16)),
+                    const Text('🌟 ', style: TextStyle(fontSize: 16)),
                     Text(
-                      'Jungle Adventure Loading...',
+                      'Learn • Play • Grow',
                       style: GoogleFonts.fredoka(
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFFFFE082),
-                        letterSpacing: 0.5,
+                        letterSpacing: 0.8,
                       ),
                     ),
-                    const Text(' 🐵', style: TextStyle(fontSize: 16)),
+                    const Text(' 🚀', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),

@@ -1,165 +1,234 @@
-<mxfile host="app.diagrams.net" modified="2026-09-15T09:00:00.000Z" agent="Mozilla/5.0" version="21.0.0" type="device">
-  <diagram id="JAROOS_DFD_1" name="DFD Level 1 (Process Decomposition)">
-    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" background="#FAFAFC" math="0" shadow="0">
+<mxfile host="app.diagrams.net">
+  <diagram name="JAROOS DFD Level 1">
+    <mxGraphModel grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827">
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
 
-        <!-- Header -->
-        <mxCell id="title" value="&lt;b&gt;DATA FLOW DIAGRAM (DFD) - LEVEL 1 (FUNCTIONAL PROCESS DECOMPOSITION)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748B&quot;&gt;Detailed Interactions Between Processes, Entities, and Local NoSQL Data Stores&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontColor=#0F172A;" vertex="1" parent="1">
-          <mxGeometry x="450" y="30" width="700" height="50" as="geometry"/>
+        <!-- External Entities -->
+
+        <mxCell id="child"
+                value="Child / Student"
+                style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=14;"
+                vertex="1" parent="1">
+          <mxGeometry x="40" y="180" width="160" height="60" as="geometry"/>
         </mxCell>
 
-        <!-- External Entity 1: Child Learner -->
-        <mxCell id="e_child" value="&lt;b&gt;Child / Learner&lt;/b&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&lt;small&gt;• Tap Cards&lt;br&gt;• Phonics Play&lt;br&gt;• Bedtime Stories&lt;br&gt;• Quiz Challenges&lt;br&gt;• Voice Interaction&lt;/small&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EEF2FF;strokeColor=#4F46E5;strokeWidth=2;fontColor=#0F172A;fontSize=12;verticalAlign=top;spacing=10;" vertex="1" parent="1">
-          <mxGeometry x="60" y="360" width="180" height="240" as="geometry"/>
+        <mxCell id="parent"
+                value="Parent / Guardian"
+                style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=14;"
+                vertex="1" parent="1">
+          <mxGeometry x="40" y="520" width="160" height="60" as="geometry"/>
         </mxCell>
 
-        <!-- External Entity 2: Parent / Guardian -->
-        <mxCell id="e_parent" value="&lt;b&gt;Parent / Guardian&lt;/b&gt;&lt;hr&gt;&lt;div align=&quot;left&quot;&gt;&lt;small&gt;• Security PIN (1234)&lt;br&gt;• Daily Time Limit&lt;br&gt;• Module Switches&lt;br&gt;• Voice Companion&lt;br&gt;• Progress Review&lt;/small&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#0D9488;strokeWidth=2;fontColor=#0F172A;fontSize=12;verticalAlign=top;spacing=10;" vertex="1" parent="1">
-          <mxGeometry x="1360" y="360" width="180" height="240" as="geometry"/>
+        <!-- Processes -->
+
+        <mxCell id="p1"
+                value="1.0 User Management"
+                style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;align=center;verticalAlign=middle;"
+                vertex="1" parent="1">
+          <mxGeometry x="280" y="120" width="190" height="90" as="geometry"/>
         </mxCell>
 
-        <!-- External Entity 3: Android Audio / TTS System -->
-        <mxCell id="e_android" value="&lt;b&gt;Android Platform &amp;amp; Audio System&lt;/b&gt;&lt;hr&gt;&lt;small&gt;Native TTS Engine (en-US / ml-IN) • OpenSL Audio • System Timer Ticks&lt;/small&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=2;fontColor=#0F172A;fontSize=12;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
-          <mxGeometry x="580" y="850" width="440" height="80" as="geometry"/>
+        <mxCell id="p2"
+                value="2.0 Learning Content"
+                style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;align=center;verticalAlign=middle;"
+                vertex="1" parent="1">
+          <mxGeometry x="530" y="120" width="190" height="90" as="geometry"/>
         </mxCell>
 
-        <!-- Process 1.0: Module & Curriculum Controller -->
-        <mxCell id="p_1" value="&lt;b&gt;1.0&lt;/b&gt;&lt;br&gt;Module &amp;amp;&lt;br&gt;Curriculum&lt;br&gt;Controller" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#4F46E5;strokeColor=#312E81;strokeWidth=2.5;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="380" y="160" width="140" height="140" as="geometry"/>
+        <mxCell id="p3"
+                value="3.0 Quiz and Assessment"
+                style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;align=center;verticalAlign=middle;"
+                vertex="1" parent="1">
+          <mxGeometry x="530" y="300" width="190" height="90" as="geometry"/>
         </mxCell>
 
-        <!-- Process 2.0: Speech Synthesis & Voice Router -->
-        <mxCell id="p_2" value="&lt;b&gt;2.0&lt;/b&gt;&lt;br&gt;Speech Synthesis&lt;br&gt;&amp;amp; Voice Router" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#4F46E5;strokeColor=#312E81;strokeWidth=2.5;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="730" y="160" width="140" height="140" as="geometry"/>
+        <mxCell id="p4"
+                value="4.0 Progress Tracking"
+                style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;align=center;verticalAlign=middle;"
+                vertex="1" parent="1">
+          <mxGeometry x="280" y="430" width="190" height="90" as="geometry"/>
         </mxCell>
 
-        <!-- Process 3.0: Bedtime Stories & Language Engine -->
-        <mxCell id="p_3" value="&lt;b&gt;3.0&lt;/b&gt;&lt;br&gt;Bedtime Stories&lt;br&gt;&amp;amp; Language&lt;br&gt;Engine" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#312E81;strokeColor=#1E1B4B;strokeWidth=2.5;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="1080" y="160" width="140" height="140" as="geometry"/>
+        <mxCell id="p5"
+                value="5.0 Voice Support"
+                style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;align=center;verticalAlign=middle;"
+                vertex="1" parent="1">
+          <mxGeometry x="530" y="500" width="190" height="90" as="geometry"/>
         </mxCell>
 
-        <!-- Process 4.0: Gamification, XP & Streak Processor -->
-        <mxCell id="p_4" value="&lt;b&gt;4.0&lt;/b&gt;&lt;br&gt;Gamification, XP&lt;br&gt;&amp;amp; Streak&lt;br&gt;Processor" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#312E81;strokeColor=#1E1B4B;strokeWidth=2.5;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="380" y="560" width="140" height="140" as="geometry"/>
+        <!-- Data Stores -->
+
+        <mxCell id="d1"
+                value="D1: User Data"
+                style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="850" y="100" width="220" height="60" as="geometry"/>
         </mxCell>
 
-        <!-- Process 5.0: Parental Gate & Security Guard -->
-        <mxCell id="p_5" value="&lt;b&gt;5.0&lt;/b&gt;&lt;br&gt;Parental Gate&lt;br&gt;&amp;amp; Security&lt;br&gt;Guard" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#0D9488;strokeColor=#047857;strokeWidth=2.5;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="1080" y="560" width="140" height="140" as="geometry"/>
+        <mxCell id="d2"
+                value="D2: Learning Content"
+                style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="850" y="220" width="220" height="60" as="geometry"/>
         </mxCell>
 
-        <!-- Data Stores (Open-ended box shape) -->
-        <!-- D1: Learning Modules -->
-        <mxCell id="d_1" value="&lt;b&gt;D1&lt;/b&gt; | Learning Modules Store" style="shape=partialRectangle;top=1;bottom=1;left=0;right=0;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#0D9488;strokeWidth=2;fontColor=#0F172A;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="350" y="380" width="200" height="45" as="geometry"/>
+        <mxCell id="d3"
+                value="D3: Quiz Records"
+                style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="850" y="340" width="220" height="60" as="geometry"/>
         </mxCell>
 
-        <!-- D2: Voice Persona Catalog -->
-        <mxCell id="d_2" value="&lt;b&gt;D2&lt;/b&gt; | Voice Persona Catalog" style="shape=partialRectangle;top=1;bottom=1;left=0;right=0;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#0D9488;strokeWidth=2;fontColor=#0F172A;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="700" y="380" width="200" height="45" as="geometry"/>
+        <mxCell id="d4"
+                value="D4: Progress Records"
+                style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="850" y="460" width="220" height="60" as="geometry"/>
         </mxCell>
 
-        <!-- D3: Bedtime Stories Catalog -->
-        <mxCell id="d_3" value="&lt;b&gt;D3&lt;/b&gt; | Bedtime Stories Catalog" style="shape=partialRectangle;top=1;bottom=1;left=0;right=0;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#0D9488;strokeWidth=2;fontColor=#0F172A;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="380" width="200" height="45" as="geometry"/>
-        </mxCell>
+        <!-- User Management Flows -->
 
-        <!-- D4: Gamification & Wallet Store -->
-        <mxCell id="d_4" value="&lt;b&gt;D4&lt;/b&gt; | Gamification Wallet Store" style="shape=partialRectangle;top=1;bottom=1;left=0;right=0;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#0D9488;strokeWidth=2;fontColor=#0F172A;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="350" y="770" width="200" height="45" as="geometry"/>
-        </mxCell>
-
-        <!-- D5: Parental Settings Store -->
-        <mxCell id="d_5" value="&lt;b&gt;D5&lt;/b&gt; | Parental Settings Store" style="shape=partialRectangle;top=1;bottom=1;left=0;right=0;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#0D9488;strokeWidth=2;fontColor=#0F172A;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="770" width="200" height="45" as="geometry"/>
-        </mxCell>
-
-        <!-- Connectors / Arrows -->
-        <!-- Child -> 1.0 (Card Tap) -->
-        <mxCell id="c_tap" value="Card Tap / Lesson" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;entryX=0;entryY=0.5;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;" edge="1" parent="1" source="e_child" target="p_1">
+        <mxCell id="f1"
+                value="Registration / Login Details"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="child" target="p1">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 1.0 <-> D1 -->
-        <mxCell id="c_1_d1" value="Fetch / Update Module" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0D9488;strokeWidth=1.5;fontColor=#0D9488;fontSize=9;" edge="1" parent="1" source="p_1" target="d_1">
+        <mxCell id="f2"
+                value="Account Information"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p1" target="d1">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 1.0 -> 2.0 (Text to Speak) -->
-        <mxCell id="c_1_2" value="Text String to Speak" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#4F46E5;strokeWidth=1.5;fontColor=#4F46E5;fontSize=10;" edge="1" parent="1" source="p_1" target="p_2">
+        <mxCell id="f3"
+                value="User Verification"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="d1" target="p1">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 2.0 -> D2 (Read Persona) -->
-        <mxCell id="c_2_d2" value="Read Pitch/Rate/Locale" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0D9488;strokeWidth=1.5;fontColor=#0D9488;fontSize=9;" edge="1" parent="1" source="p_2" target="d_2">
+        <mxCell id="f4"
+                value="Login Status"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p1" target="child">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 2.0 -> Android (Audio Payload) -->
-        <mxCell id="c_2_android" value="Synthesize Text Payload" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D97706;strokeWidth=2;fontColor=#D97706;fontSize=10;" edge="1" parent="1" source="p_2" target="e_android">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="800" y="600"/>
-              <mxPoint x="800" y="850"/>
-            </Array>
-          </mxGeometry>
-        </mxCell>
+        <!-- Learning Content Flows -->
 
-        <!-- Child -> 3.0 (Stories Select) -->
-        <mxCell id="c_child_3" value="Select Story / 'Read to Me'" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;" edge="1" parent="1" source="e_child" target="p_3">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="150" y="120"/>
-              <mxPoint x="1150" y="120"/>
-            </Array>
-          </mxGeometry>
-        </mxCell>
-
-        <!-- 3.0 <-> D3 -->
-        <mxCell id="c_3_d3" value="Read Story Text &amp;amp; Moral" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0D9488;strokeWidth=1.5;fontColor=#0D9488;fontSize=9;" edge="1" parent="1" source="p_3" target="d_3">
+        <mxCell id="f5"
+                value="Learning Request"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="child" target="p2">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 3.0 -> 2.0 (Malayalam / English text dispatch) -->
-        <mxCell id="c_3_2" value="Narrate Story Paragraphs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#4F46E5;strokeWidth=1.5;fontColor=#4F46E5;fontSize=10;" edge="1" parent="1" source="p_3" target="p_2">
+        <mxCell id="f6"
+                value="Learning Content"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p2" target="child">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 1.0 -> 4.0 (Activity Completed) -->
-        <mxCell id="c_1_4" value="Lesson Done (+10 XP)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=9;" edge="1" parent="1" source="p_1" target="p_4">
+        <mxCell id="f7"
+                value="Content Request"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p2" target="d2">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 4.0 <-> D4 -->
-        <mxCell id="c_4_d4" value="Update Coins &amp;amp; Streak" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0D9488;strokeWidth=1.5;fontColor=#0D9488;fontSize=9;" edge="1" parent="1" source="p_4" target="d_4">
+        <mxCell id="f8"
+                value="Available Content"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="d2" target="p2">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 4.0 -> Child (Confetti, XP, Badges) -->
-        <mxCell id="c_4_child" value="XP, Coins, Badges &amp;amp; Confetti" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#059669;strokeWidth=2;fontColor=#059669;fontSize=10;fontStyle=1;" edge="1" parent="1" source="p_4" target="e_child">
+        <!-- Quiz Flows -->
+
+        <mxCell id="f9"
+                value="Quiz Answers"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="child" target="p3">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- Parent -> 5.0 (PIN, Limits) -->
-        <mxCell id="c_parent_5" value="PIN (1234) &amp;amp; Time Caps" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0D9488;strokeWidth=1.5;fontColor=#0D9488;fontSize=10;" edge="1" parent="1" source="e_parent" target="p_5">
+        <mxCell id="f10"
+                value="Quiz Result"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p3" target="child">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 5.0 <-> D5 -->
-        <mxCell id="c_5_d5" value="Persist Settings" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0D9488;strokeWidth=1.5;fontColor=#0D9488;fontSize=9;" edge="1" parent="1" source="p_5" target="d_5">
+        <mxCell id="f11"
+                value="Quiz Record"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p3" target="d3">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- 5.0 -> Parent (Screen Time Stats) -->
-        <mxCell id="c_5_parent" value="Screen-Time &amp;amp; Progress Stats" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#059669;strokeWidth=1.5;fontColor=#059669;fontSize=10;" edge="1" parent="1" source="p_5" target="e_parent">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="1270" y="670"/>
-              <mxPoint x="1450" y="670"/>
-            </Array>
-          </mxGeometry>
+        <mxCell id="f12"
+                value="Stored Quiz Records"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="d3" target="p3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Progress Tracking Flows -->
+
+        <mxCell id="f13"
+                value="Learning Progress"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p3" target="p4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f14"
+                value="Progress Data"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p4" target="d4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f15"
+                value="Stored Progress"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="d4" target="p4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f16"
+                value="Progress Request"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="parent" target="p4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f17"
+                value="Progress Report"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p4" target="parent">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Voice Support Flows -->
+
+        <mxCell id="f18"
+                value="Voice Input / Text Request"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="child" target="p5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f19"
+                value="Audio / Text Response"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;endArrow=block;endFill=1;"
+                edge="1" parent="1" source="p5" target="child">
+          <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
       </root>
