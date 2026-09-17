@@ -137,6 +137,23 @@ class VoicePersona {
     voiceKeywords: ['en-us', 'network', 'neural'],
   );
 
+  /// 7. Talking Buddy / Tom - High-pitched cartoon caricature voice
+  static const VoicePersona talkingTom = VoicePersona(
+    id: 'talking_tom',
+    name: 'Talking Buddy',
+    role: 'Cartoon Mimic 🐱',
+    emoji: '🎙️',
+    languageCode: 'en',
+    description: 'High-pitched caricature voice that mimics and repeats words in funny cartoon style!',
+    samplePhrase: "Hehe! Say something and I will repeat it! Woo-hoo! 🎙️",
+    basePitch: 1.65,
+    excitedPitch: 1.80,
+    calmPitch: 1.50,
+    baseRate: 0.52,
+    accentColorHex: 0xFFFFA000,
+    voiceKeywords: ['child', 'high', 'robot', 'cartoon'],
+  );
+
   // ==========================================
   // HINDI VOICES (hi)
   // ==========================================
@@ -264,7 +281,7 @@ class VoicePersona {
     appu,
   ];
 
-  /// All available active voice personas for the app (6 English + 3 Malayalam)
+  /// All available active voice personas for the app
   static const List<VoicePersona> activePersonas = [
     ...englishVoices,
     ...malayalamVoices,
@@ -273,6 +290,7 @@ class VoicePersona {
   /// All available curated voice personas
   static const List<VoicePersona> all = [
     sparky,
+    talkingTom,
     dora,
     lily,
     leo,

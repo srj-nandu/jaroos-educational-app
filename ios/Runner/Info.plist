@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>JAROOS needs microphone access so you can talk to your virtual simulator character.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>JAROOS needs speech recognition to hear your questions and repeat your words like Talking Tom.</string>
 </dict>
 </plist>

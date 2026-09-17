@@ -56,6 +56,9 @@ void main() {
       expect(find.text('Repeat 🎙️'), findsOneWidget);
       expect(find.text('High Five 🖐️'), findsOneWidget);
 
+      // Microphone talk button
+      expect(find.text('Tap to Talk to Me 🎙️'), findsOneWidget);
+
       // Character image asset presence
       expect(find.byType(Image), findsWidgets);
     });
@@ -143,6 +146,55 @@ void main() {
       await tester.pump();
 
       expect(find.textContaining('You are super cool!'), findsOneWidget);
+    });
+
+    testWidgets('Tap to Talk to Me mic button activates listening pose and repeats speech on stop', (tester) async {
+      await tester.pumpWidget(
+        createTestSimulatorApp(
+          home: const VirtualSimulatorScreen(),
+        ),
+      );
+      await tester.pump();
+
+      // Verify Talk to Me button is visible
+      expect(find.text('Tap to Talk to Me 🎙️'), findsOneWidget);
+
+      // Tap Talk to Me button to start listening
+      await tester.tap(find.text('Tap to Talk to Me 🎙️'));
+      await tester.pump();
+
+      // State transitions to listening with ear icon and indicator
+      expect(find.text('Listening... Tap to Repeat! 👂'), findsOneWidget);
+      expect(find.textContaining("I'm listening"), findsOneWidget);
+
+      // Tap again to stop and repeat
+      await tester.tap(find.text('Listening... Tap to Repeat! 👂'));
+      await tester.pump();
+
+      // Expect listening to end
+      expect(find.text('Tap to Talk to Me 🎙️'), findsOneWidget);
+    });
+
+    testWidgets('What the child asks is repeated by character like Talking Tom', (tester) async {
+      await tester.pumpWidget(
+        createTestSimulatorApp(
+          home: const VirtualSimulatorScreen(),
+        ),
+      );
+      await tester.pump();
+
+      // Switch to Talking Tom Voice Repeat Mode
+      await tester.tap(find.text('Repeat 🎙️'));
+      await tester.pump();
+
+      // Ask a question in repeat mode
+      await tester.enterText(find.byType(TextField), 'What is your favorite game?');
+      await tester.testTextInput.receiveAction(TextInputAction.send);
+      await tester.pump();
+
+      // The character repeats what the child asked word-for-word!
+      expect(find.textContaining('What is your favorite game?'), findsOneWidget);
+      expect(find.textContaining('Hehe, that sounds awesome when I say it!'), findsOneWidget);
     });
 
     testWidgets('AI companion answers curious STEM questions and updates speech bubble', (tester) async {

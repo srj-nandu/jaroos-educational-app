@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/tts_service.dart';
 import '../../../core/theme/app_colors.dart';
@@ -10,6 +11,7 @@ import '../../../services/ai_service.dart';
 
 enum CharacterMood {
   idle,
+  listening,
   speaking,
   laughing,
   thinking,
@@ -48,9 +50,11 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
   late AnimationController _wobbleController;
   late AnimationController _danceController;
   late AnimationController _talkController;
+  late AnimationController _listeningWaveController;
 
   late TtsService _ttsService;
   final TextEditingController _inputCtrl = TextEditingController();
+  stt.SpeechToText? _speechToText;
 
   CharacterMood _currentMood = CharacterMood.idle;
   String _speechBubbleText = "Hi there! I'm your interactive buddy! Tap me, feed me, or talk with me! 🌟";
@@ -58,12 +62,16 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
   bool _showCrown = false;
   bool _isVoiceRepeatMode = false;
   bool _isProcessingAI = false;
+  bool _isSpeechAvailable = false;
+  bool _isListening = false;
 
   final List<String> _quickRepeats = [
     "I love learning! 🚀",
     "You are so funny! 😂",
     "JAROOS is awesome! ⭐",
     "Let's play and grow! 🌿",
+    "What is your name? 🤔",
+    "Why is the sky blue? ☀️",
   ];
 
   final List<String> _curiosityQuestions = [
@@ -113,6 +121,46 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
       vsync: this,
       duration: const Duration(milliseconds: 250),
     );
+
+    // Listening waves animation
+    _listeningWaveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    if (!isTest) {
+      _initSpeechRecognition();
+    }
+  }
+
+  Future<void> _initSpeechRecognition() async {
+    try {
+      _speechToText = stt.SpeechToText();
+      final available = await _speechToText!.initialize(
+        onError: (val) {
+          debugPrint('[JAROOS STT Error] $val');
+          if (mounted && _isListening) {
+            _stopListening(shouldRepeat: true);
+          }
+        },
+        onStatus: (val) {
+          debugPrint('[JAROOS STT Status] $val');
+          if (val == 'done' || val == 'notListening') {
+            if (mounted && _isListening) {
+              _stopListening(shouldRepeat: true);
+            }
+          }
+        },
+      );
+      if (mounted) {
+        setState(() => _isSpeechAvailable = available);
+      }
+    } catch (e) {
+      debugPrint('[JAROOS STT Exception] $e');
+      if (mounted) {
+        setState(() => _isSpeechAvailable = false);
+      }
+    }
   }
 
   @override
@@ -122,6 +170,8 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
     _wobbleController.dispose();
     _danceController.dispose();
     _talkController.dispose();
+    _listeningWaveController.dispose();
+    _speechToText?.stop();
     _inputCtrl.dispose();
     super.dispose();
   }
@@ -139,6 +189,7 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
     final isTest = WidgetsBinding.instance.runtimeType.toString().contains('Test');
     if (!isTest) {
       _talkController.repeat(reverse: true);
+      ModularTtsService.setActivePersona('talking_tom');
     }
 
     await _ttsService.speak(text);
@@ -147,6 +198,7 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
       if (!isTest) {
         _talkController.stop();
         _talkController.value = 0.0;
+        ModularTtsService.setActivePersona('sparky_kid');
       }
       setState(() {
         _currentMood = CharacterMood.idle;
@@ -233,9 +285,102 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
     });
   }
 
+  /// Toggle live microphone listening
+  Future<void> _toggleListening() async {
+    if (_isListening) {
+      await _stopListening(shouldRepeat: true);
+    } else {
+      await _startListening();
+    }
+  }
+
+  Future<void> _startListening() async {
+    final isTest = WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    setState(() {
+      _isListening = true;
+      _currentMood = CharacterMood.listening;
+      _speechBubbleText = "I'm listening to you! Talk or ask me anything... 👂✨";
+    });
+
+    if (!isTest) {
+      _listeningWaveController.repeat(reverse: true);
+    }
+
+    if (_speechToText == null || !_isSpeechAvailable) {
+      if (!isTest) {
+        await _initSpeechRecognition();
+      }
+    }
+
+    if (_speechToText != null && _isSpeechAvailable) {
+      try {
+        await _speechToText!.listen(
+          onResult: (result) {
+            if (result.recognizedWords.isNotEmpty) {
+              setState(() {
+                _speechBubbleText = "Hearing: \"${result.recognizedWords}\"... 👂";
+              });
+            }
+            if (result.finalResult && result.recognizedWords.trim().isNotEmpty) {
+              _stopListening(shouldRepeat: true, spokenText: result.recognizedWords.trim());
+            }
+          },
+          listenFor: const Duration(seconds: 10),
+          pauseFor: const Duration(seconds: 2),
+        );
+      } catch (e) {
+        debugPrint('[JAROOS STT Listen Catch] $e');
+      }
+    } else if (!isTest) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Microphone access unavailable. Tap chips or type words to repeat!',
+            style: GoogleFonts.fredoka(fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFFE65100),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _stopListening({bool shouldRepeat = false, String? spokenText}) async {
+    final isTest = WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    if (!isTest) {
+      _listeningWaveController.stop();
+      _listeningWaveController.value = 0.0;
+    }
+
+    if (_speechToText != null && _speechToText!.isListening) {
+      try {
+        await _speechToText!.stop();
+      } catch (_) {}
+    }
+
+    setState(() => _isListening = false);
+
+    if (shouldRepeat) {
+      final textToRepeat = spokenText?.trim() ?? _inputCtrl.text.trim();
+      if (textToRepeat.isNotEmpty) {
+        _handleRepeatPhrase(textToRepeat);
+      } else {
+        setState(() {
+          _currentMood = CharacterMood.idle;
+          _speechBubbleText = "I'm all ears! Tap the mic button to talk to me! 🎙️";
+        });
+      }
+    } else {
+      setState(() {
+        _currentMood = CharacterMood.idle;
+      });
+    }
+  }
+
   /// Talking Tom Voice Repeat Mode
   void _handleRepeatPhrase(String phrase) {
     _inputCtrl.clear();
+    _wobbleController.forward(from: 0.0);
     _speakAsCharacter(
       "🗣️ \"$phrase\" ... Hehe, that sounds awesome when I say it!",
       mood: CharacterMood.speaking,
@@ -429,6 +574,8 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
 
   String _getMoodEmoji() {
     switch (_currentMood) {
+      case CharacterMood.listening:
+        return '👂';
       case CharacterMood.speaking:
         return '🗣️';
       case CharacterMood.laughing:
@@ -458,6 +605,7 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
         _wobbleController,
         _danceController,
         _talkController,
+        _listeningWaveController,
       ]),
       builder: (context, child) {
         // Continuous gentle breathing offset
@@ -496,6 +644,14 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
                           clipBehavior: Clip.none,
                           alignment: Alignment.center,
                       children: [
+                        // Listening Sound Waves Ripple Effect
+                        if (_currentMood == CharacterMood.listening)
+                          Positioned.fill(
+                            child: Center(
+                              child: _buildListeningRipples(),
+                            ),
+                          ),
+
                         // 1. Character Visual Image
                         Image.asset(
                           'assets/images/simulator_character.png',
@@ -506,6 +662,41 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
                             child: Text('🧍‍♂️✨', style: TextStyle(fontSize: 80)),
                           ),
                         ),
+
+                        // Listening Status Badge
+                        if (_currentMood == CharacterMood.listening)
+                          Positioned(
+                            top: 15,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFA000),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFFFA000).withValues(alpha: 0.4),
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('👂', style: TextStyle(fontSize: 16)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Listening...',
+                                    style: GoogleFonts.fredoka(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
 
                         // 2. Cool Sunglasses Accessory Overlay
                         if (_showSunglasses)
@@ -697,6 +888,11 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
 
           const SizedBox(height: 10),
 
+          // Big Talking Tom Microphone Button
+          _buildMicrophoneTalkButton(),
+
+          const SizedBox(height: 10),
+
           // Voice Repeat Phrases or Curiosity Chips
           if (_isVoiceRepeatMode)
             SizedBox(
@@ -756,6 +952,30 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
           // Question / Speech Input Bar
           Row(
             children: [
+              GestureDetector(
+                onTap: _toggleListening,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 44,
+                  height: 44,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: _isListening ? const Color(0xFFEF4444) : const Color(0xFFFFF3D6),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: _isListening ? const Color(0xFFDC2626) : const Color(0xFFFFD54F),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      _isListening ? Icons.stop_rounded : Icons.mic_rounded,
+                      color: _isListening ? Colors.white : const Color(0xFFE65100),
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
               Expanded(
                 child: Container(
                   height: 46,
@@ -820,6 +1040,88 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMicrophoneTalkButton() {
+    return GestureDetector(
+      onTap: _toggleListening,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: _isListening
+                ? [const Color(0xFFEF4444), const Color(0xFFDC2626)]
+                : [const Color(0xFFFFA000), const Color(0xFFFF6F00)],
+          ),
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: [
+            BoxShadow(
+              color: (_isListening ? const Color(0xFFEF4444) : const Color(0xFFFFA000))
+                  .withValues(alpha: 0.35),
+              blurRadius: _isListening ? 14 : 8,
+              spreadRadius: _isListening ? 2 : 0,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _isListening ? Icons.graphic_eq_rounded : Icons.mic_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _isListening ? 'Listening... Tap to Repeat! 👂' : 'Tap to Talk to Me 🎙️',
+              style: GoogleFonts.fredoka(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListeningRipples() {
+    return AnimatedBuilder(
+      animation: _listeningWaveController,
+      builder: (context, child) {
+        final val = _listeningWaveController.value;
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 250 + (val * 45),
+              height: 250 + (val * 45),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFFFA000).withValues(alpha: (0.5 * (1.0 - val)).clamp(0.0, 1.0)),
+                  width: 3.0,
+                ),
+              ),
+            ),
+            Container(
+              width: 220 + (val * 30),
+              height: 220 + (val * 30),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFFF5722).withValues(alpha: (0.6 * (1.0 - val)).clamp(0.0, 1.0)),
+                  width: 2.0,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
