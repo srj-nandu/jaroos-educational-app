@@ -669,6 +669,10 @@ class ParentDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
+          // Piper TTS Engine Selection & Server Status
+          const _PiperEngineSection(),
+          const SizedBox(height: 16),
+
           // Section 1: Malayalam Voice Models (Highlighted Header)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1019,3 +1023,440 @@ class ParentDashboardScreen extends StatelessWidget {
     );
   }
 }
+
+/// Interactive Piper Neural TTS Engine Settings & Server Health Monitor
+class _PiperEngineSection extends StatefulWidget {
+  const _PiperEngineSection();
+
+  @override
+  State<_PiperEngineSection> createState() => _PiperEngineSectionState();
+}
+
+class _PiperEngineSectionState extends State<_PiperEngineSection> {
+  bool _isPinging = false;
+  bool? _pingResult;
+  List<Map<String, dynamic>> _models = [];
+  bool _isLoadingModels = false;
+  String? _downloadingModelId;
+
+  @override
+  void initState() {
+    super.initState();
+    _pingResult = ModularTtsService.isPiperOnline;
+    _loadModels();
+  }
+
+  Future<void> _loadModels() async {
+    setState(() => _isLoadingModels = true);
+    final list = await ModularTtsService.fetchPiperModels();
+    if (mounted) {
+      setState(() {
+        _models = list;
+        _isLoadingModels = false;
+      });
+    }
+  }
+
+  Future<void> _downloadModel(String modelId) async {
+    setState(() => _downloadingModelId = modelId);
+    final success = await ModularTtsService.downloadPiperModel(modelId);
+    if (mounted) {
+      setState(() => _downloadingModelId = null);
+      await _loadModels();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? '✅ Successfully downloaded $modelId from web into project folder!'
+                : '❌ Failed downloading $modelId. Please check connection.',
+          ),
+          backgroundColor: success ? const Color(0xFF10B981) : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _selectModel(String modelId) async {
+    final success = await ModularTtsService.selectPiperModel(modelId);
+    if (mounted) {
+      await _loadModels();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? '⭐ Active model switched to $modelId' : 'Failed selecting model $modelId',
+          ),
+          backgroundColor: const Color(0xFF10B981),
+        ),
+      );
+    }
+  }
+
+  Future<void> _checkConnection() async {
+    setState(() => _isPinging = true);
+    final isOnline = await ModularTtsService.pingPiperServer();
+    if (mounted) {
+      setState(() {
+        _isPinging = false;
+        _pingResult = isOnline;
+      });
+      if (isOnline) {
+        _loadModels();
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isOnline
+                ? '🟢 Piper TTS Server online! Neural AI synthesis active.'
+                : '🟡 Server offline at ${ModularTtsService.piperServerUrl}. Using native voice fallback.',
+          ),
+          backgroundColor: isOnline ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _showUrlDialog() {
+    final ctrl = TextEditingController(text: ModularTtsService.piperServerUrl);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Piper TTS Server URL 🌐', style: GoogleFonts.fredoka(fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Default Android Emulator: http://10.0.2.2:5002\nDefault Desktop / Web: http://127.0.0.1:5002',
+              style: GoogleFonts.nunito(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.dns_rounded),
+                labelText: 'Server URL',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              ModularTtsService.setPiperServerUrl(ctrl.text);
+              Navigator.pop(ctx);
+              _checkConnection();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF16A34A),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save & Ping'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = ModularTtsService.engineMode;
+    final isPiper = mode == TtsEngineMode.piperNeural || mode == TtsEngineMode.coquiNeural;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFBBF7D0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🧠', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'TTS Engine (rhasspy/piper ONNX)',
+                  style: GoogleFonts.fredoka(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF166534),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: (_pingResult ?? false) ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: (_pingResult ?? false) ? const Color(0xFF86EFAC) : const Color(0xFFFDE68A),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 3,
+                      backgroundColor: (_pingResult ?? false) ? const Color(0xFF16A34A) : const Color(0xFFD97706),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      (_pingResult ?? false) ? 'Online' : 'Fallback',
+                      style: GoogleFonts.nunito(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: (_pingResult ?? false) ? const Color(0xFF15803D) : const Color(0xFFB45309),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: ChoiceChip(
+                  label: const Center(child: Text('Piper Neural')),
+                  selected: isPiper,
+                  onSelected: (_) {
+                    setState(() {
+                      ModularTtsService.setEngineMode(TtsEngineMode.piperNeural);
+                    });
+                  },
+                  selectedColor: const Color(0xFFDCFCE7),
+                  labelStyle: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: isPiper ? FontWeight.w800 : FontWeight.w600,
+                    color: isPiper ? const Color(0xFF15803D) : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ChoiceChip(
+                  label: const Center(child: Text('Device Native')),
+                  selected: !isPiper,
+                  onSelected: (_) {
+                    setState(() {
+                      ModularTtsService.setEngineMode(TtsEngineMode.systemNative);
+                    });
+                  },
+                  selectedColor: AppColors.primaryLight,
+                  labelStyle: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: !isPiper ? FontWeight.w800 : FontWeight.w600,
+                    color: !isPiper ? AppColors.primaryDark : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (isPiper) ...[
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: _showUrlDialog,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF86EFAC)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.link_rounded, size: 14, color: Color(0xFF16A34A)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        ModularTtsService.piperServerUrl,
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF166534),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: _isPinging ? null : _checkConnection,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF16A34A),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: _isPinging
+                            ? const SizedBox(width: 10, height: 10, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Text('Ping', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Piper Voice Models from Web Management
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFC8E6C9)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.cloud_download_rounded, size: 16, color: Color(0xFF16A34A)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Voice Models (Download from Web)',
+                          style: GoogleFonts.fredoka(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF166534)),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: _isLoadingModels ? null : _loadModels,
+                        child: _isLoadingModels
+                            ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.5))
+                            : const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF16A34A)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  if (_models.isEmpty)
+                    Text(
+                      'Tap refresh or Ping to load models from server.',
+                      style: GoogleFonts.nunito(fontSize: 11, color: AppColors.textSecondary),
+                    )
+                  else
+                    ..._models.map((m) {
+                      final id = m['id']?.toString() ?? '';
+                      final name = m['name']?.toString() ?? id;
+                      final desc = m['description']?.toString() ?? '';
+                      final isDownloaded = m['downloaded'] == true;
+                      final isActive = m['is_active'] == true;
+                      final isDownloading = _downloadingModelId == id;
+                      final sizeMb = m['size_mb'];
+
+                      return Container(
+                        margin: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isActive ? const Color(0xFFF0FDF4) : const Color(0xFFFAFAFA),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isActive ? const Color(0xFF86EFAC) : const Color(0xFFE5E7EB),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: isActive ? const Color(0xFF166534) : AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      if (isActive) ...[
+                                        const SizedBox(width: 4),
+                                        const Text('⭐', style: TextStyle(fontSize: 10)),
+                                      ],
+                                    ],
+                                  ),
+                                  if (desc.isNotEmpty)
+                                    Text(
+                                      desc,
+                                      style: GoogleFonts.nunito(fontSize: 10, color: AppColors.textSecondary),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  if (isDownloaded && sizeMb != null && sizeMb > 0)
+                                    Text(
+                                      'Downloaded in project ($sizeMb MB)',
+                                      style: GoogleFonts.nunito(fontSize: 9, fontWeight: FontWeight.bold, color: const Color(0xFF16A34A)),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            if (isDownloading)
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF16A34A)),
+                              )
+                            else if (isDownloaded)
+                              isActive
+                                  ? Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFDCFCE7),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'Active',
+                                        style: GoogleFonts.nunito(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF15803D)),
+                                      ),
+                                    )
+                                  : ElevatedButton(
+                                      onPressed: () => _selectModel(id),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF16A34A),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: const Text('Use', style: TextStyle(fontSize: 10)),
+                                    )
+                            else
+                              ElevatedButton.icon(
+                                onPressed: () => _downloadModel(id),
+                                icon: const Icon(Icons.download_rounded, size: 12),
+                                label: const Text('Download', style: TextStyle(fontSize: 10)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF0284C7),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    }),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+

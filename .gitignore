@@ -58,4 +58,9 @@ app.*.map.json
 backend/.env
 
 # Release binaries (stored in GitHub Releases)
+releases/**/*.apk
 releases/*.apk
+
+# Piper neural TTS models (downloaded via download_models.py / download_models.bat)
+*.onnx
+

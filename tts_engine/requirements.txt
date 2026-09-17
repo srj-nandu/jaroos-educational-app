@@ -1,0 +1,4 @@
+# Dependencies for running the JAROOS Piper TTS Neural Engine in Python
+# Install with: pip install -r requirements.txt
+piper-tts>=1.8.0
+onnxruntime>=1.17.0
