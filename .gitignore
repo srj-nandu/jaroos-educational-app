@@ -61,6 +61,7 @@ backend/.env
 releases/**/*.apk
 releases/*.apk
 
-# Piper neural TTS models (downloaded via download_models.py / download_models.bat)
+# Piper neural TTS models (allow bundled offline assets in project)
 *.onnx
+!assets/models/piper/*.onnx
 

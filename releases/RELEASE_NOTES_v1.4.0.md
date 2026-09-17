@@ -4,18 +4,21 @@ We are proud to release **JAROOS v1.4.0 (Build 4)**, delivering our most advance
 
 ---
 
-## 🌟 What's New in v1.2.0
+## 🌟 What's New in v1.4.0
 
-### 1. 🎙️ Piper Neural Voice Synthesis Engine & Web Model Downloader
-- **Ultra-Fast Local Piper ONNX Engine**: Replaced legacy bulky engines with high-efficiency Piper neural TTS running on ONNX Runtime (`onnxruntime` v1.30.0), synthesizing natural speech in under 150ms.
-- **Web Model Downloader Integrated in Project**:
-  - `tts_engine/download_models.py` & `tts_engine/download_models.bat` download neural models directly from HuggingFace (`rhasspy/piper-voices`) into `tts_engine/models/`.
-  - Downloaded models include `en_US-lessac-medium` (high-quality child mascot & Talking Tom) and `en_US-amy-medium` (expressive bedtime story & teacher voice).
-- **In-App Dynamic Voice Catalog & Download**:
-  - Parent Dashboard feature: **Voice Models (Download from Web)**.
-  - Parents can monitor downloaded models, check disk size, download new voice packs directly from the web, and activate models with one tap.
-- **Real-Time Talking Tom Pitch Modulation**: High-speed digital signal processing pitch shifts raw 22.05 kHz PCM audio to deliver the signature hilarious Talking Tom voice mimicry.
-- **Zero-Downtime Fallback**: If the microservice is offline, the app automatically and seamlessly falls back to the native device TTS engine.
+### 1. 🎙️ 100% On-Device Offline Piper Neural Voice Synthesis Engine
+- **Completely Server-Free & Offline**: Removed all external Python servers, local microservices (`tts_engine/`), and server URL configurations (`http://10.0.2.2:5002`). The app runs 100% self-contained on the device with zero internet or server connection needed.
+- **Precompiled Native Mobile ONNX Runtime (`sherpa_onnx`)**: Powered by high-efficiency int8-quantized Piper VITS models running directly on device CPU via native C++ binaries for Android (`arm64-v8a`, `armeabi-v7a`, `x86_64`).
+- **Bundled Multi-Language Neural Voice Models**:
+  - `en_US-lessac-medium` (18.5 MB): Default mascot (Sparky Kid) and Talking Tom.
+  - `en_US-amy-medium` (18.7 MB): Warm English teacher (Emma) and bedtime story narrator.
+  - `ml_IN-arjun-medium` (18.3 MB): Playful Malayalam child companion (Unni) and little explorer (Appu).
+  - `ml_IN-meera-medium` (18.3 MB): Gentle Malayalam storyteller (Meenu).
+  - `espeak-ng-data.zip` (8.7 MB): Shared phoneme dictionary for instant first-run on-device extraction.
+- **Clean Parent Dashboard Experience**:
+  - Removed server URLs, ping buttons, and fallback badges.
+  - Replaced with a clean **100% Offline Piper Neural Engine** card with instant one-tap voice model activation.
+- **Real-Time Talking Tom Pitch Modulation**: High-speed digital signal processing pitch shifts raw 22.05 kHz PCM audio to deliver hilarious Talking Tom voice caricature repeat mode directly on device.
 
 ### 2. 🐱 Interactive Virtual Simulator ("Talking Tom" Kid Companion)
 - **3D Child-Friendly Character**: Adorable 3D cartoon kid buddy ready to play, learn, and laugh with children.
