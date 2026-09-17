@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:jaroos/core/services/tts_service.dart';
@@ -192,9 +192,8 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.send);
       await tester.pump();
 
-      // The character repeats what the child asked word-for-word!
+      // The character repeats what the child asked word-for-word without filler!
       expect(find.textContaining('What is your favorite game?'), findsOneWidget);
-      expect(find.textContaining('Hehe, that sounds awesome when I say it!'), findsOneWidget);
     });
 
     testWidgets('AI companion answers curious STEM questions and updates speech bubble', (tester) async {

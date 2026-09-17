@@ -144,14 +144,14 @@ class VoicePersona {
     role: 'Cartoon Mimic 🐱',
     emoji: '🎙️',
     languageCode: 'en',
-    description: 'High-pitched caricature voice that mimics and repeats words in funny cartoon style!',
-    samplePhrase: "Hehe! Say something and I will repeat it! Woo-hoo! 🎙️",
-    basePitch: 1.65,
-    excitedPitch: 1.80,
-    calmPitch: 1.50,
-    baseRate: 0.52,
+    description: 'Ultra high-pitched cartoon caricature voice that mimics and repeats words in true Talking Tom style!',
+    samplePhrase: "Say something and I will repeat it! 🎙️",
+    basePitch: 1.95,
+    excitedPitch: 2.0,
+    calmPitch: 1.85,
+    baseRate: 0.56,
     accentColorHex: 0xFFFFA000,
-    voiceKeywords: ['child', 'high', 'robot', 'cartoon'],
+    voiceKeywords: ['child', 'high', 'robot', 'cartoon', 'female'],
   );
 
   // ==========================================

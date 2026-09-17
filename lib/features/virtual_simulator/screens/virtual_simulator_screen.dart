@@ -377,14 +377,14 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
     }
   }
 
-  /// Talking Tom Voice Repeat Mode
+  /// Talking Tom Voice Repeat Mode: Pure repetition without filler
   void _handleRepeatPhrase(String phrase) {
+    final clean = phrase.trim();
+    if (clean.isEmpty) return;
+
     _inputCtrl.clear();
     _wobbleController.forward(from: 0.0);
-    _speakAsCharacter(
-      "🗣️ \"$phrase\" ... Hehe, that sounds awesome when I say it!",
-      mood: CharacterMood.speaking,
-    );
+    _speakAsCharacter(clean, mood: CharacterMood.speaking);
   }
 
   /// Ask Question to AI Companion
@@ -701,7 +701,7 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
                         // 2. Cool Sunglasses Accessory Overlay
                         if (_showSunglasses)
                           Positioned(
-                            top: 88,
+                            top: 98,
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                               decoration: BoxDecoration(
@@ -716,14 +716,14 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
                         // 3. Golden Crown Accessory Overlay
                         if (_showCrown)
                           const Positioned(
-                            top: 8,
+                            top: 6,
                             child: Text('👑', style: TextStyle(fontSize: 36)),
                           ),
 
                         // 4. Talking Mouth Animation Ripple Indicator
                         if (_currentMood == CharacterMood.speaking)
                           Positioned(
-                            top: 135,
+                            top: 142,
                             child: Container(
                               width: 14,
                               height: 8,
@@ -745,12 +745,12 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
                         // TOUCH TARGET ZONES (Transparent Interactive Overlays)
                         // ====================================================
 
-                        // Zone A: Head & Curly Hair (Tickle)
+                        // Zone A: Head & Hair (Tickle)
                         Positioned(
                           top: 0,
                           left: 40,
                           right: 40,
-                          height: 95,
+                          height: 100,
                           child: GestureDetector(
                             behavior: HitTestBehavior.translucent,
                             onTap: _onTapHead,
@@ -760,10 +760,10 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
 
                         // Zone B: Face & Cheeks (Loving Pet)
                         Positioned(
-                          top: 95,
-                          left: 60,
-                          right: 60,
-                          height: 70,
+                          top: 100,
+                          left: 50,
+                          right: 50,
+                          height: 75,
                           child: GestureDetector(
                             behavior: HitTestBehavior.translucent,
                             onTap: _onTapFace,
@@ -773,10 +773,10 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
 
                         // Zone C: Waving Hand (High Five!)
                         Positioned(
-                          top: 155,
-                          left: 10,
-                          width: 65,
-                          height: 65,
+                          top: 55,
+                          left: 5,
+                          width: 75,
+                          height: 80,
                           child: GestureDetector(
                             behavior: HitTestBehavior.translucent,
                             onTap: _onTapHand,
@@ -784,12 +784,12 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
                           ),
                         ),
 
-                        // Zone D: Belly / Green Shirt (Poke & Giggle)
+                        // Zone D: Belly & Denim Overalls (Poke & Giggle)
                         Positioned(
-                          top: 170,
-                          left: 75,
-                          right: 75,
-                          height: 90,
+                          top: 175,
+                          left: 65,
+                          right: 65,
+                          height: 100,
                           child: GestureDetector(
                             behavior: HitTestBehavior.translucent,
                             onTap: _onTapBelly,
@@ -800,9 +800,9 @@ class _VirtualSimulatorScreenState extends State<VirtualSimulatorScreen>
                         // Zone E: Sneakers / Feet (Bouncy Jump)
                         Positioned(
                           bottom: 0,
-                          left: 45,
-                          right: 45,
-                          height: 75,
+                          left: 40,
+                          right: 40,
+                          height: 80,
                           child: GestureDetector(
                             behavior: HitTestBehavior.translucent,
                             onTap: _onTapFeet,
