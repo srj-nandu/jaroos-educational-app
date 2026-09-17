@@ -4,14 +4,34 @@ import 'package:flutter/material.dart';
 /// Designed specifically for children aged 3–8: bright, cheerful, high-contrast,
 /// and soft on young eyes.
 class AppColors {
-  // Brand Primary & Secondary
-  static const Color primary = Color(0xFF4FC3F7); // Sky Blue
-  static const Color primaryDark = Color(0xFF0288D1);
-  static const Color primaryLight = Color(0xFFE1F5FE);
+  // Brand Primary & Secondary (Warm Sunny Yellow from Reference Mockup)
+  static const Color primary = Color(0xFFFFAF00); // Warm Sunny Yellow
+  static const Color primaryDark = Color(0xFFE69D00);
+  static const Color primaryLight = Color(0xFFFFF4D6);
 
-  static const Color secondary = Color(0xFFFFB300); // Sunshine Yellow
-  static const Color secondaryDark = Color(0xFFFF8F00);
-  static const Color secondaryLight = Color(0xFFFFF8E1);
+  static const Color secondary = Color(0xFFFF9800); // Amber Orange
+  static const Color secondaryDark = Color(0xFFF57C00);
+  static const Color secondaryLight = Color(0xFFFFF3E0);
+
+  // Warm Sunny Yellow & Enlightenment Education Theme
+  static const Color sunnyYellow = Color(0xFFFFAF00); // Main Sunny Yellow
+  static const Color sunnyYellowDark = Color(0xFFE69D00);
+  static const Color sunnyYellowLight = Color(0xFFFFF4D6);
+  static const Color sunnyOrange = Color(0xFFFF9800); // Card & Pill Button Orange
+  static const Color sunnyAmber = Color(0xFFF59E0B);
+  static const Color creamBackground = Color(0xFFFFFDF8); // Clean Warm Cream Scaffold
+  static const Color warmCanvas = Color(0xFFFAF7F0);
+  static const Color softCardBorder = Color(0xFFF1EADB);
+
+  // Pastel Squircle Action Cards (Reference Mockup)
+  static const Color categoryStory = Color(0xFFFF5722);
+  static const Color categoryStoryBg = Color(0xFFFFECE5);
+  static const Color categoryVideo = Color(0xFF3B82F6);
+  static const Color categoryVideoBg = Color(0xFFEBF3FE);
+  static const Color categoryMusic = Color(0xFF9333EA);
+  static const Color categoryMusicBg = Color(0xFFF5EBFD);
+  static const Color categoryQuiz = Color(0xFF10B981);
+  static const Color categoryQuizBg = Color(0xFFECFDF5);
 
   // Child-Friendly Accent Colors
   static const Color coral = Color(0xFFFF7043); // Cheerful Orange

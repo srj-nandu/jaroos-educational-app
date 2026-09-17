@@ -34,12 +34,12 @@ class PathNodeData {
   });
 }
 
-/// Interactive Duolingo-style Stepping Stones Learning Path Screen for JAROOS.
+/// Redesigned "Course" Screen matching the Course mockups from the reference showcase.
 /// Features:
-/// - Top Bar with back navigation and gems counter (💎 320)
-/// - Unit 1 Header Card: "A1 Beginner ∨ | Unit 1 . Getting Started"
-/// - Winding S-curve path with colorful nodes: completed checks, books, active headphones with "Start" tag, chests, and locked nodes
-/// - Landscape bottom with meadow hills and trees
+/// - Header: "Course", "Find a class you like", gems counter
+/// - Hero Carousel Card: Landscape illustration banner with slider dots
+/// - "Popular" Section: Course cards with tags (Child, 0-3, English), friend groups, and orange "Join" buttons
+/// - Stepping Stones Journey: Winding S-curve learning path
 class LearningPathScreen extends StatefulWidget {
   final bool showBackButton;
 
@@ -139,69 +139,18 @@ class _LearningPathScreenState extends State<LearningPathScreen> with SingleTick
 
   void _onNodeTap(PathNodeData node) {
     if (node.type == PathNodeType.locked) {
-      _ttsService.speak("This lesson is locked! Complete the earlier steps first!");
+      _ttsService.speak("${node.title} is locked! Complete previous lessons to unlock.");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '🔒 Complete earlier lessons to unlock ${node.title}!',
-            style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
-          ),
-          backgroundColor: const Color(0xFF374151),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: Text('${node.title} is locked! Complete previous lessons to unlock.'),
+          backgroundColor: const Color(0xFF6B7280),
           duration: const Duration(seconds: 2),
         ),
       );
       return;
     }
 
-    if (node.type == PathNodeType.chest) {
-      _ttsService.speak("You found a treasure chest! You earned 20 bonus coins!");
-      final learningProvider = Provider.of<LearningProvider>(context, listen: false);
-      learningProvider.addCoins(20);
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          backgroundColor: Colors.white,
-          title: Row(
-            children: [
-              const Text('🎁 ', style: TextStyle(fontSize: 28)),
-              Text(
-                'Treasure Found!',
-                style: GoogleFonts.fredoka(fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('✨ 🪙 +20 Coins Awarded! 🌟', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFFF8F00))),
-              const SizedBox(height: 10),
-              Text(
-                'Great job continuing your learning adventure! Keep going!',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(fontSize: 14, color: const Color(0xFF555555)),
-              ),
-            ],
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.duolingoLime,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              child: Text('Awesome!', style: GoogleFonts.fredoka(color: Colors.white)),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    _ttsService.speak("Let's start ${node.title}!");
+    _ttsService.speak("Opening ${node.title}!");
     Navigator.pushNamed(context, node.route);
   }
 
@@ -211,431 +160,608 @@ class _LearningPathScreenState extends State<LearningPathScreen> with SingleTick
     final coins = learningProvider.coins;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FCF2), // Soft clean meadow background
+      backgroundColor: const Color(0xFFFFFDF8), // Clean warm cream background
       body: SafeArea(
-        child: Column(
-          children: [
-            // 1. Top Header Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  if (widget.showBackButton)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF1E3A0B)),
-                      onPressed: () => Navigator.maybePop(context),
-                    )
-                  else
-                    const SizedBox(width: 8),
-
-                  Text(
-                    'Learning Path',
-                    style: GoogleFonts.fredoka(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF132A13),
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // Gems / XP Pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('💎', style: TextStyle(fontSize: 16)),
-                        const SizedBox(width: 6),
-                        Text(
-                          '$coins',
-                          style: GoogleFonts.fredoka(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFFE65100),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // 2. Unit Banner Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.forestGreenDark,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Header Bar: "Course", "Find a class you like", Gems counter
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'A1 Beginner',
-                              style: GoogleFonts.fredoka(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 20),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Unit 1 . Getting Started',
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFFA5CFA6),
+                    if (widget.showBackButton)
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFF1EADB), width: 1.2),
                           ),
+                          child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Color(0xFF1F2937)),
                         ),
-                      ],
-                    ),
-
-                    // Unit Guidebook Icon
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
                       ),
-                      child: const Center(
-                        child: Icon(Icons.menu_book_rounded, color: Colors.white, size: 22),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
 
-            const SizedBox(height: 8),
-
-            // 3. Scrollable Stepping Stones Path
-            Expanded(
-              child: Stack(
-                children: [
-                  // Bottom rolling green hill & trees
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 120,
-                    child: CustomPaint(
-                      painter: _PathMeadowBottomPainter(),
-                    ),
-                  ),
-
-                  // Nodes List
-                  ListView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    children: [
-                      for (int i = 0; i < _unit1Nodes.length; i++) ...[
-                        if (i == 5) ...[
-                          // Unit 2 Divider
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                            child: Row(
-                              children: [
-                                const Expanded(child: Divider(color: Color(0xFFD1D5DB), thickness: 1.5)),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                                  child: Text(
-                                    'Unit 2',
-                                    style: GoogleFonts.fredoka(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF9CA3AF),
-                                    ),
-                                  ),
-                                ),
-                                const Expanded(child: Divider(color: Color(0xFFD1D5DB), thickness: 1.5)),
-                              ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Course',
+                            style: GoogleFonts.fredoka(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1F2937),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Find a class you like',
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF9CA3AF),
                             ),
                           ),
                         ],
-
-                        _buildPathNodeItem(_unit1Nodes[i]),
-                        const SizedBox(height: 22),
-                      ],
-
-                      const SizedBox(height: 80),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPathNodeItem(PathNodeData node) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final offsetX = node.xOffsetFactor * (screenWidth * 0.28);
-
-    return Center(
-      child: Transform.translate(
-        offset: Offset(offsetX, 0),
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            // Floating "Start" Speech Bubble Tag for active node
-            if (node.type == PathNodeType.activeHeadphones)
-              Positioned(
-                top: -34,
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    final floatY = math.sin(_pulseController.value * 2 * math.pi) * 3.0;
-                    return Transform.translate(
-                      offset: Offset(0, floatY),
-                      child: child,
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.duolingoLime, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.duolingoLime.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      'START',
-                      style: GoogleFonts.fredoka(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.duolingoLime,
-                        letterSpacing: 0.5,
                       ),
                     ),
-                  ),
-                ),
-              ),
 
-            // The Node Circle Button
-            GestureDetector(
-              onTap: () => _onNodeTap(node),
-              child: _buildNodeCircle(node),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNodeCircle(PathNodeData node) {
-    switch (node.type) {
-      case PathNodeType.chest:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFF48C72B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF33991C), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.16),
-                blurRadius: 8,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Text('🎁', style: TextStyle(fontSize: 30)),
-          ),
-        );
-
-      case PathNodeType.completedCheck:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFF48C72B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF33991C), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 8,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(Icons.check_rounded, color: Colors.white, size: 34),
-          ),
-        );
-
-      case PathNodeType.bookLesson:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFF48C72B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF33991C), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 8,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(Icons.menu_book_rounded, color: Colors.white, size: 28),
-          ),
-        );
-
-      case PathNodeType.activeHeadphones:
-        return AnimatedBuilder(
-          animation: _pulseController,
-          builder: (context, child) {
-            final pulseScale = 1.0 + (_pulseController.value * 0.06);
-            return Transform.scale(
-              scale: pulseScale,
-              child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: AppColors.duolingoLime,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.duolingoLime.withValues(alpha: 0.5),
-                      blurRadius: 16,
-                      spreadRadius: 2,
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 6),
+                    // Gems Capsule
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFF1EADB), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('💎', style: TextStyle(fontSize: 14)),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$coins',
+                            style: GoogleFonts.fredoka(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFFFA000),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                child: const Center(
-                  child: Icon(Icons.headphones_rounded, color: Colors.white, size: 34),
+              ),
+
+              const SizedBox(height: 10),
+
+              // 2. Hero Carousel Landscape Card (Desert Little Prince & Fox)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF7E6),
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: Image.asset(
+                          'assets/images/course_banner_art.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Center(
+                            child: Text('🏜️🦊👦', style: TextStyle(fontSize: 40)),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Carousel Dots (Active Yellow Bar + Inactive Dots)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 14,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFA000),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE5E7EB),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE5E7EB),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        );
 
-      case PathNodeType.challengeDumbbell:
-        return Container(
-          width: 66,
-          height: 66,
-          decoration: BoxDecoration(
-            color: const Color(0xFF48C72B),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF33991C), width: 4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 8,
-                offset: const Offset(0, 5),
+              const SizedBox(height: 20),
+
+              // 3. "Popular" Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Popular',
+                      style: GoogleFonts.fredoka(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1F2937),
+                      ),
+                    ),
+                    Text(
+                      'More',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF9CA3AF),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+
+              const SizedBox(height: 12),
+
+              // Course Card 1: Experience Course (Red Hood)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildCourseItem(
+                  title: 'Experience Course',
+                  imageAsset: 'assets/images/thumb_red_hood.png',
+                  defaultEmoji: '👧',
+                  tag1: 'Child',
+                  tag2: '0–3',
+                  tag3: 'English',
+                  friendsText: '8 friends in group',
+                  onJoin: () {
+                    _ttsService.speak("Opening Experience Course!");
+                    Navigator.pushNamed(context, AppRoutes.alphabet);
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Course Card 2: Experience Course (Giraffe)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildCourseItem(
+                  title: 'Experience Course',
+                  imageAsset: 'assets/images/thumb_giraffe.png',
+                  defaultEmoji: '🦒',
+                  tag1: 'Child',
+                  tag2: '3–6',
+                  tag3: 'English',
+                  friendsText: '10 friends in group',
+                  onJoin: () {
+                    _ttsService.speak("Opening Experience Course!");
+                    Navigator.pushNamed(context, AppRoutes.numbers);
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Course Card 3: Animal World & Malayalam Stories
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildCourseItem(
+                  title: 'Animal Safari & Tales',
+                  imageAsset: 'assets/images/mascot_avatar.png',
+                  defaultEmoji: '🦁',
+                  tag1: 'Child',
+                  tag2: '3–8',
+                  tag3: 'Malayalam',
+                  friendsText: '14 friends in group',
+                  onJoin: () {
+                    _ttsService.speak("Opening Animal Safari & Tales!");
+                    Navigator.pushNamed(context, AppRoutes.animals);
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 26),
+
+              // 4. Stepping Stones Section Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Text('🗺️ ', style: TextStyle(fontSize: 18)),
+                    Text(
+                      'Learning Journey • Stepping Stones',
+                      style: GoogleFonts.fredoka(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1F2937),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 5. Winding S-Curve Stepping Stones Path
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _unit1Nodes.length,
+                itemBuilder: (context, index) {
+                  final node = _unit1Nodes[index];
+                  final isLast = index == _unit1Nodes.length - 1;
+                  return _buildNodeWithConnector(node, isLast);
+                },
+              ),
+
+              const SizedBox(height: 36),
             ],
           ),
-          child: const Center(
-            child: Icon(Icons.fitness_center_rounded, color: Colors.white, size: 28),
-          ),
-        );
+        ),
+      ),
+    );
+  }
 
-      case PathNodeType.locked:
+  /// Course List Item matching reference mockup with Tags, Friends row, and orange "Join" button
+  Widget _buildCourseItem({
+    required String title,
+    required String imageAsset,
+    required String defaultEmoji,
+    required String tag1,
+    required String tag2,
+    required String tag3,
+    required String friendsText,
+    required VoidCallback onJoin,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF1EADB), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Squircle Character Thumbnail
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3D6),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                imageAsset,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Center(
+                  child: Text(defaultEmoji, style: const TextStyle(fontSize: 28)),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 14),
+
+          // Course Info & Badges
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.fredoka(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Tags Row: Child, Age, Language
+                Row(
+                  children: [
+                    _buildPillTag(tag1, const Color(0xFFEBF3FE), const Color(0xFF3B82F6)),
+                    const SizedBox(width: 6),
+                    _buildPillTag(tag2, const Color(0xFFFFECE5), const Color(0xFFFF5722)),
+                    const SizedBox(width: 6),
+                    _buildPillTag(tag3, const Color(0xFFFFF8E1), const Color(0xFFFFA000)),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+
+                // Friends Avatars Row
+                Row(
+                  children: [
+                    // Mini overlapping avatars
+                    SizedBox(
+                      width: 38,
+                      height: 18,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            left: 0,
+                            child: Container(
+                              width: 18,
+                              height: 18,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFFB74D),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Center(child: Text('👦', style: TextStyle(fontSize: 10))),
+                            ),
+                          ),
+                          Positioned(
+                            left: 12,
+                            child: Container(
+                              width: 18,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFF7043),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 1.5),
+                              ),
+                              child: const Center(child: Text('👧', style: TextStyle(fontSize: 10))),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      friendsText,
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF9CA3AF),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Orange Pill "Join" Button
+          GestureDetector(
+            onTap: onJoin,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFA000), Color(0xFFFF8F00)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF8F00).withValues(alpha: 0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                'Join',
+                style: GoogleFonts.fredoka(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPillTag(String label, Color bg, Color textCol) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.fredoka(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: textCol,
+        ),
+      ),
+    );
+  }
+
+  /// Stepping Stones Node with Connector
+  Widget _buildNodeWithConnector(PathNodeData node, bool isLast) {
+    return Center(
+      child: Transform.translate(
+        offset: Offset(node.xOffsetFactor * 100, 0),
+        child: Column(
+          children: [
+            GestureDetector(
+              onTap: () => _onNodeTap(node),
+              child: _buildNodeWidget(node),
+            ),
+            if (!isLast)
+              Container(
+                width: 4,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE5D5B8),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNodeWidget(PathNodeData node) {
+    switch (node.type) {
+      case PathNodeType.chest:
         return Container(
-          width: 66,
-          height: 66,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFFE5E7EB),
+            color: const Color(0xFFFFA000),
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFCBD5E1), width: 4),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 6,
+                color: const Color(0xFFFFA000).withValues(alpha: 0.4),
+                blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: const Center(
-            child: Icon(Icons.lock_rounded, color: Color(0xFF94A3B8), size: 26),
+          child: const Center(child: Text('🎁', style: TextStyle(fontSize: 26))),
+        );
+
+      case PathNodeType.completedCheck:
+        return Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: const Color(0xFF10B981),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
+          child: const Icon(Icons.check_rounded, color: Colors.white, size: 28),
+        );
+
+      case PathNodeType.activeHeadphones:
+        return Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B82F6),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 28),
+        );
+
+      case PathNodeType.bookLesson:
+        return Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF8F00),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF8F00).withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 26),
+        );
+
+      case PathNodeType.challengeDumbbell:
+        return Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: const Color(0xFF8B5CF6),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 26),
+        );
+
+      case PathNodeType.locked:
+        return Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE5E7EB),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFD1D5DB), width: 1.5),
+          ),
+          child: const Icon(Icons.lock_rounded, color: Color(0xFF9CA3AF), size: 22),
         );
     }
   }
-}
-
-/// Painter for the meadow green hill and trees at the bottom of the path
-class _PathMeadowBottomPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Green Meadow Hill
-    final hillPaint = Paint()..color = const Color(0xFF5ABF28);
-    final hillPath = Path()
-      ..moveTo(0, size.height * 0.45)
-      ..quadraticBezierTo(size.width * 0.5, size.height * 0.15, size.width, size.height * 0.40)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(hillPath, hillPaint);
-
-    // Left Little Tree
-    final trunkPaint = Paint()..color = const Color(0xFF8D6E63);
-    canvas.drawRect(Rect.fromLTWH(18, size.height * 0.40, 8, 20), trunkPaint);
-    final leavesPaint = Paint()..color = const Color(0xFF388E3C);
-    canvas.drawCircle(Offset(22, size.height * 0.35), 18, leavesPaint);
-
-    // Right Little Tree
-    canvas.drawRect(Rect.fromLTWH(size.width - 28, size.height * 0.35, 8, 24), trunkPaint);
-    canvas.drawCircle(Offset(size.width - 24, size.height * 0.28), 20, leavesPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

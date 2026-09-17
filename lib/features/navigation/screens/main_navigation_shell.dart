@@ -7,13 +7,16 @@ import '../../profile/screens/profile_screen.dart';
 import '../../progress/screens/progress_screen.dart';
 import '../../quiz/screens/quiz_screen.dart';
 
+import '../../rhymes/screens/rhymes_screen.dart';
+
 /// Main Navigation Shell hosting the persistent 5-tab bottom navigation bar.
+/// Styled according to the Enlightenment / Sunny Yellow Children Education design system.
 /// Tabs:
-/// 1. 🏠 Home: Modern dashboard with streak, XP, League, and "Continue Learning"
-/// 2. 📖 Courses: Stepping stones learning path (Duolingo style)
-/// 3. 🤹 Practice: Quiz Arena, AI Sparky Buddy, Bedtime Stories
-/// 4. 📊 Progress: Telemetry, achievements, and parent portal
-/// 5. 👤 Profile: Child profile, avatar, coins, sound settings
+/// 1. 🏠 Home: Enlightenment dashboard, streak, quick category squircle cards, and recommendations
+/// 2. 📖 Courses: Class explorer and stepping stones learning path
+/// 3. 🎵 Music: Rhymes, bedtime audio stories, and floating music mini-player
+/// 4. 🧠 Practice: Quiz Arena and interactive games
+/// 5. 👤 Personal: Learner profile, stars, badges, and parental portal
 class MainNavigationShell extends StatefulWidget {
   final int initialTab;
 
@@ -32,8 +35,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   final List<Widget> _screens = const [
     HomeScreen(),
     LearningPathScreen(showBackButton: false),
+    RhymesScreen(),
     QuizScreen(),
-    ProgressScreen(),
     ProfileScreen(),
   ];
 
@@ -61,28 +64,29 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           border: const Border(
-            top: BorderSide(color: Color(0xFFE5E7EB), width: 1.2),
+            top: BorderSide(color: Color(0xFFF3EFE6), width: 1.2),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -3),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
             ),
           ],
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(0, Icons.home_rounded, 'Home'),
-                _buildNavItem(1, Icons.menu_book_rounded, 'Courses'),
-                _buildNavItem(2, Icons.psychology_rounded, 'Practice'),
-                _buildNavItem(3, Icons.bar_chart_rounded, 'Progress'),
-                _buildNavItem(4, Icons.person_rounded, 'Profile'),
+                _buildNavItem(1, Icons.explore_rounded, 'Courses'),
+                _buildNavItem(2, Icons.music_note_rounded, 'Music'),
+                _buildNavItem(3, Icons.psychology_rounded, 'Practice'),
+                _buildNavItem(4, Icons.person_rounded, 'Personal'),
               ],
             ),
           ),
@@ -93,13 +97,13 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = _currentIndex == index;
-    final color = isSelected ? const Color(0xFF132A13) : const Color(0xFF9CA3AF);
+    final color = isSelected ? const Color(0xFFFFA000) : const Color(0xFF9CA3AF);
 
     return InkWell(
       onTap: () => _onTabTapped(index),
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -115,6 +119,17 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 color: color,
+              ),
+            ),
+            const SizedBox(height: 3),
+            // Active indicator dot
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: isSelected ? 5 : 0,
+              height: isSelected ? 5 : 0,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFA000),
+                shape: BoxShape.circle,
               ),
             ),
           ],
