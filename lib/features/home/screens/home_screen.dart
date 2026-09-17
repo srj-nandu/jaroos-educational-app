@@ -435,9 +435,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
+              const SizedBox(height: 20),
+
+              // 6. Interactive Virtual Simulator Hero Banner (Talking Tom style)
+              _buildVirtualSimulatorBanner(context),
+
               const SizedBox(height: 24),
 
-              // 6. "Quick Practice" Horizontal Carousel (Alphabet, Numbers, Colors, Animals, Fruits)
+              // 7. "Quick Practice" Horizontal Carousel (Simulator, Alphabet, Numbers, Colors, Animals, Fruits)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -471,6 +476,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   children: [
+                    _buildQuickPracticeTile(
+                      emoji: '🤖',
+                      title: 'Simulator',
+                      color: const Color(0xFF8B5CF6),
+                      route: AppRoutes.virtualSimulator,
+                    ),
+                    const SizedBox(width: 12),
                     _buildQuickPracticeTile(
                       emoji: '🔤',
                       title: 'Alphabet',
@@ -761,6 +773,116 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF1F2937),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVirtualSimulatorBanner(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        _ttsService.speak("Let's play with your interactive virtual buddy!");
+        Navigator.pushNamed(context, AppRoutes.virtualSimulator);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF7C3AED),
+              Color(0xFF6D28D9),
+              Color(0xFF4C1D95),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Character preview / avatar thumbnail
+            Container(
+              width: 58,
+              height: 68,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/images/simulator_character.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Text('🎮', style: TextStyle(fontSize: 30)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBBF24),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '3D TALKING BUDDY',
+                      style: GoogleFonts.fredoka(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF78350F),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Virtual Simulator 🎮',
+                    style: GoogleFonts.fredoka(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Voice repeat, touch tickles & AI companion',
+                    style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFFE9D5FF),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.white,
+                size: 14,
               ),
             ),
           ],

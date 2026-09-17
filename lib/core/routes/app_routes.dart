@@ -21,6 +21,7 @@ import '../../features/profile/screens/profile_screen.dart';
 import '../../features/parent/screens/parent_dashboard_screen.dart';
 import '../../features/ai_buddy/screens/ai_buddy_screen.dart';
 import '../../features/ai_stories/screens/ai_story_generator_screen.dart';
+import '../../features/virtual_simulator/screens/virtual_simulator_screen.dart';
 
 /// Centralized route registry and route generator for JAROOS.
 /// Maps all 20 screens and supplies playful custom page transitions.
@@ -47,6 +48,7 @@ class AppRoutes {
   static const String parentDashboard = '/parent-dashboard';
   static const String aiBuddy = '/ai-buddy';
   static const String aiStoryGenerator = '/ai-story-generator';
+  static const String virtualSimulator = '/simulator';
 
   /// Generates routes with smooth playful transitions (Fade + Scale)
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -113,6 +115,9 @@ class AppRoutes {
 
       case aiStoryGenerator:
         return _buildPageRoute(const AiStoryGeneratorScreen(), settings);
+
+      case virtualSimulator:
+        return _buildPageRoute(const VirtualSimulatorScreen(), settings);
 
       default:
         return _buildPageRoute(
